@@ -243,6 +243,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const photoPlaceholder = document.getElementById("card-photo-placeholder");
     const cardStamp = document.getElementById("card-stamp");
 
+    // 👉 pega o container da carteirinha
+    const cardElement = document.querySelector(".card");
+
     if (cardName) cardName.textContent = user.nome || "";
     if (cardRa) cardRa.textContent = user.ra || "";
     if (cardCourse) cardCourse.textContent = user.curso || "";
@@ -271,7 +274,6 @@ document.addEventListener("DOMContentLoaded", () => {
         photoPlaceholder.textContent = "FOTO";
       }
     }
-
     // carimbo grande e situação
     if (cardStamp) {
       cardStamp.classList.remove("authorized", "pending");
@@ -279,15 +281,27 @@ document.addEventListener("DOMContentLoaded", () => {
       if (user.status === "approved") {
         cardStamp.textContent = "SAÍDA AUTORIZADA";
         cardStamp.classList.add("authorized");
+
+        // tira o carimbão diagonal (carteira liberada)
+        if (cardElement) {
+          cardElement.classList.remove("card-pending");
+        }
       } else {
+        // para qualquer coisa que não seja "approved", mostra PENDENTE
         cardStamp.textContent = "PENDENTE";
         cardStamp.classList.add("pending");
+
+        // coloca o carimbão diagonal vermelho por cima da carteirinha
+        if (cardElement) {
+          cardElement.classList.add("card-pending");
+        }
       }
     }
 
     if (statusMsg) {
       if (user.status === "approved") {
-        statusMsg.textContent = "Carteirinha ativa. Saída antecipada autorizada.";
+        statusMsg.textContent =
+          "Carteira ativa. Saída antecipada autorizada.";
       } else if (user.status === "pending") {
         statusMsg.textContent =
           "Pedido em análise. Saída antecipada ainda pendente de autorização.";
@@ -295,9 +309,11 @@ document.addEventListener("DOMContentLoaded", () => {
         statusMsg.textContent =
           "Pedido indeferido. Saída antecipada não autorizada. Procure a coordenação.";
       } else {
-        statusMsg.textContent = "Status da carteirinha não definido.";
+        statusMsg.textContent = "Status da carteira não definido.";
       }
     }
+
+
   }
 
   function renderAdminPanel() {

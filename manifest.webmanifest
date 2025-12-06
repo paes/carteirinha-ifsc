@@ -1,18 +1,18 @@
 {
-  "name": "Carteirinha Estudantil IFSC",
-  "short_name": "Carteirinha",
+  "name": "Carteira de Saída Antecipada - IFSC Garopaba",
+  "short_name": "Saída Antecipada Garopaba",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#7aba05",
   "theme_color": "#7aba05",
+  "background_color": "#ffffff",
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "icons/android-chrome-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icons/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
