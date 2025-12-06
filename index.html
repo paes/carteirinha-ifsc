@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carteirinha Estudantil IFSC</title>
+
+  <meta name="theme-color" content="#7aba05" />
+
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app">
+
+    <!-- TELA DE LOGIN -->
+    <section id="login-screen" class="screen">
+      <div class="brand-login">
+        <img
+          src="icons/logo-v.png"
+          alt="Instituto Federal de Santa Catarina - Câmpus Garopaba"
+          class="logo-vertical"
+        />
+      </div>
+
+      <h1>Carteirinha Estudantil</h1>
+      <p class="subtitle">Faça login para acessar sua carteirinha</p>
+
+      <form id="login-form">
+        <label>
+          Matrícula
+          <input type="text" id="ra" required placeholder="Ex: 20251234" />
+        </label>
+
+        <label>
+          Senha
+          <input type="password" id="password" required placeholder="••••••" />
+        </label>
+
+        <button type="submit" class="primary">Entrar</button>
+        <p id="login-error" class="error hidden">Matrícula ou senha inválidos.</p>
+      </form>
+
+      <button id="go-to-request" class="link-button" type="button">
+        Primeiro acesso? Solicitar carteirinha
+      </button>
+    </section>
+
+    <!-- TELA DE SOLICITAÇÃO DE CARTEIRINHA (ESTUDANTE) -->
+    <section id="request-screen" class="screen hidden">
+      <header class="top-bar">
+        <h2>Solicitar Carteirinha</h2>
+        <button id="back-to-login" class="link-button" type="button">Voltar</button>
+      </header>
+
+      <form id="request-form">
+        <label>
+          Matrícula
+          <input type="text" id="req-ra" required />
+        </label>
+
+        <label>
+          Nome completo do aluno
+          <input type="text" id="req-nome" required />
+        </label>
+
+        <label>
+          Curso
+          <select id="req-curso" required>
+            <option value="">Selecione...</option>
+            <option value="Curso Técnico Integrado em Administração">
+              Curso Técnico Integrado em Administração
+            </option>
+            <option value="Curso Técnico Integrado em Informática">
+              Curso Técnico Integrado em Informática
+            </option>
+            <option value="Curso Técnico Integrado em Lazer">
+              Curso Técnico Integrado em Lazer
+            </option>
+            <option value="Curso Técnico Concomitante em Biotecnologia">
+              Curso Técnico Concomitante em Biotecnologia
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Turma
+          <select id="req-turma" required>
+            <option value="">Selecione...</option>
+            <!-- Informática -->
+            <option value="INF23">INF23</option>
+            <option value="INF24">INF24</option>
+            <option value="INF25">INF25</option>
+            <option value="INF26">INF26</option>
+            <!-- Lazer -->
+            <option value="LAZ25">LAZ25</option>
+            <option value="LAZ26">LAZ26</option>
+            <!-- Administração -->
+            <option value="ADM23">ADM23</option>
+            <option value="ADM24">ADM24</option>
+            <option value="ADM25">ADM25</option>
+            <option value="ADM26">ADM26</option>
+            <!-- Biotecnologia (Concomitante) -->
+            <option value="BIT23">BIT23</option>
+            <option value="BIT24">BIT24</option>
+            <option value="BIT25">BIT25</option>
+            <option value="BIT26">BIT26</option>
+          </select>
+        </label>
+
+        <label>
+          Data de nascimento do aluno
+          <input type="date" id="req-data-nasc" required />
+        </label>
+
+        <label>
+          E-mail institucional (login@aluno.ifsc.edu.br)
+          <input
+            type="email"
+            id="req-email"
+            required
+            placeholder="login@aluno.ifsc.edu.br"
+          />
+        </label>
+
+        <label>
+          Nome do responsável
+          <input type="text" id="req-resp-nome" required />
+        </label>
+
+        <label>
+          Telefone do responsável
+          <input type="tel" id="req-resp-tel" required placeholder="48999999999" />
+        </label>
+
+        <label>
+          Foto 3x4 (máx. 300 KB, formato imagem)
+          <input type="file" id="req-foto" accept="image/*" />
+        </label>
+
+        <label>
+          Defina uma senha para acesso
+          <input type="password" id="req-senha" required />
+        </label>
+
+        <label>
+          Confirme a senha
+          <input type="password" id="req-senha2" required />
+        </label>
+
+        <!-- BLOCO DE INFORMAÇÕES SOBRE AUTORIZAÇÃO DE SAÍDA ANTECIPADA -->
+        <div class="info-box">
+          <h3>Autorização de saída antecipada</h3>
+          <p>
+            A autorização de saída antecipada permite que estudantes menores saiam do câmpus
+            em situações específicas, com acordo prévio entre família e estudante.
+          </p>
+          <p>Ela é válida apenas para:</p>
+          <ul>
+            <li>Trabalhos acadêmicos fora de horário de aula;</li>
+            <li>Troca de horário de aulas;</li>
+            <li>Ausência eventual de professores(as);</li>
+            <li>Atendimentos extraclasse ou monitoria;</li>
+            <li>Finalização antecipada de avaliações.</li>
+          </ul>
+          <p>
+            Para outras situações, continua valendo o contato com a Coordenadoria Pedagógica.
+          </p>
+          <p>
+            <strong>Links úteis:</strong><br />
+            Modelo de autorização em PDF:
+            <a href="https://drive.google.com/file/d/1quMZtj1anlwpyKQMkZf6BSiIJJZBwkDA/view"
+               target="_blank" rel="noopener noreferrer">
+              abrir modelo
+            </a><br />
+            Assinador gov.br:
+            <a href="https://assinador.iti.br/"
+               target="_blank" rel="noopener noreferrer">
+              acessar assinador
+            </a><br />
+            Formulário institucional completo:
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSdc7TBD05qC_7_iKxxi9TDlT6W5kWzR3qtEQNR-lCkMWXa1lQ/viewform"
+               target="_blank" rel="noopener noreferrer">
+              abrir formulário
+            </a>
+          </p>
+        </div>
+
+        <label class="checkbox-line">
+          <input type="checkbox" id="req-saida-autorizada" />
+          Li as informações sobre a saída antecipada e declaro que o responsável
+          já assinou (ou assinará) o termo no gov.br.
+        </label>
+
+        <label class="checkbox-line">
+          <input type="checkbox" id="req-resp-ok" />
+          Entreguei (ou entregarei) na coordenação a autorização assinada pelo responsável.
+        </label>
+
+        <button type="submit" class="primary">
+          Enviar pedido de carteirinha
+        </button>
+      </form>
+    </section>
+
+    <!-- TELA DA CARTEIRINHA DO ESTUDANTE -->
+    <section id="card-screen" class="screen hidden">
+      <header class="top-bar">
+        <h2>Minha Carteirinha</h2>
+        <button id="logout-btn" class="link-button" type="button">Sair</button>
+      </header>
+
+      <div class="card-rotated-wrapper">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <img
+                src="icons/logo-h.png"
+                alt="Instituto Federal de Santa Catarina - Câmpus Garopaba"
+                class="logo-horizontal"
+              />
+            </div>
+            <div class="card-header-right">
+              <span class="header-line-small">
+                INSTITUTO FEDERAL DE EDUCAÇÃO, CIÊNCIA E TECNOLOGIA
+              </span>
+              <span class="header-line-medium">
+                SANTA CATARINA – CÂMPUS GAROPABA
+              </span>
+              <span class="header-line-big">
+                CARTEIRA DE IDENTIFICAÇÃO ESTUDANTIL
+              </span>
+            </div>
+          </div>
+
+          <div class="card-main">
+            <div class="card-photo">
+              <div class="photo-placeholder" id="card-photo-placeholder">
+                FOTO
+              </div>
+              <div id="card-stamp" class="card-stamp">
+                <!-- SAÍDA AUTORIZADA / PENDENTE -->
+              </div>
+            </div>
+
+            <div class="card-fields">
+              <!-- NOME em linha cheia -->
+              <div class="card-field full">
+                <span class="field-label">NOME</span>
+                <span class="field-value" id="card-name"></span>
+              </div>
+
+              <!-- MATRÍCULA + IDADE na mesma linha -->
+              <div class="card-row">
+                <div class="card-field half">
+                  <span class="field-label">MATRÍCULA</span>
+                  <span class="field-value" id="card-ra"></span>
+                </div>
+                <div class="card-field half">
+                  <span class="field-label">IDADE DO ALUNO</span>
+                  <span class="field-value" id="card-idade"></span>
+                </div>
+              </div>
+
+              <!-- CURSO / TURMA em linha cheia -->
+              <div class="card-field full">
+                <span class="field-label">CURSO / TURMA</span>
+                <div class="field-value field-value-curso-turma">
+                  <span id="card-course"></span>
+                  <span id="card-turma" class="tag-turma"></span>
+                </div>
+              </div>
+
+              <!-- RESPONSÁVEL + TELEFONE na mesma linha -->
+              <div class="card-row">
+                <div class="card-field half">
+                  <span class="field-label">NOME DO RESPONSÁVEL</span>
+                  <span class="field-value" id="card-resp-nome"></span>
+                </div>
+                <div class="card-field half">
+                  <span class="field-label">TELEFONE DO RESPONSÁVEL</span>
+                  <span class="field-value" id="card-resp-tel"></span>
+                </div>
+              </div>
+
+              <!-- SITUAÇÃO em linha cheia -->
+              <div class="card-field full">
+                <span class="field-label">SITUAÇÃO / SAÍDA ANTECIPADA</span>
+                <span class="field-value" id="card-status-msg"></span>
+              </div>
+
+              <!-- Observações logo em seguida -->
+              <div class="card-footer">
+                <span class="footer-title">Observações</span>
+                <span class="footer-text">
+                  Válida exclusivamente para saída antecipada nas seguintes situações:
+                  trabalhos acadêmicos fora de horário de aula; troca de horário de aulas;
+                  ausência eventual de professores(as); atendimentos extraclasse ou
+                  monitoria; finalização antecipada de avaliações.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TELA DO ADMINISTRADOR -->
+    <section id="admin-screen" class="screen hidden">
+      <header class="top-bar">
+        <h2>Painel de Aprovação</h2>
+        <button id="admin-logout-btn" class="link-button" type="button">Sair</button>
+      </header>
+
+      <p class="subtitle">
+        Abaixo estão os pedidos de carteirinha pendentes de aprovação.
+      </p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Matrícula</th>
+              <th>Curso</th>
+              <th>Turma</th>
+              <th>Formulário</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="admin-table-body">
+            <!-- preenchido via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
