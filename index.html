@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Carteirinha Estudantil IFSC</title>
+  <title>Carteira de Saída Antecipada - IFSC Garopaba</title>
 
   <meta name="theme-color" content="#7aba05" />
 
@@ -23,40 +23,60 @@
         />
       </div>
 
-      <h1>Carteirinha Estudantil</h1>
-      <p class="subtitle">Faça login para acessar sua carteirinha</p>
+      <h1>Carteira de Saída Antecipada</h1>
+      <p class="subtitle">Faça login para acessar sua carteira de saída</p>
 
       <form id="login-form">
         <label>
           Matrícula
-          <input type="text" id="ra" required placeholder="Ex: 20251234" />
+          <input
+            type="text"
+            id="ra"
+            required
+            placeholder="Ex: 20251234"
+            inputmode="numeric"
+          />
         </label>
 
         <label>
           Senha
-          <input type="password" id="password" required placeholder="••••••" />
+          <input
+            type="password"
+            id="password"
+            required
+            placeholder="••••••"
+          />
         </label>
 
         <button type="submit" class="primary">Entrar</button>
-        <p id="login-error" class="error hidden">Matrícula ou senha inválidos.</p>
+        <p id="login-error" class="error hidden">
+          Matrícula ou senha inválidos.
+        </p>
       </form>
 
       <button id="go-to-request" class="link-button" type="button">
-        Primeiro acesso? Solicitar carteirinha
+        Primeiro acesso? Solicitar carteira
       </button>
     </section>
 
-    <!-- TELA DE SOLICITAÇÃO DE CARTEIRINHA (ESTUDANTE) -->
+    <!-- TELA DE SOLICITAÇÃO DE CARTEIRA (ESTUDANTE) -->
     <section id="request-screen" class="screen hidden">
       <header class="top-bar">
-        <h2>Solicitar Carteirinha</h2>
-        <button id="back-to-login" class="link-button" type="button">Voltar</button>
+        <h2>Solicitar Carteira de Saída Antecipada</h2>
+        <button id="back-to-login" class="link-button" type="button">
+          Voltar
+        </button>
       </header>
 
       <form id="request-form">
         <label>
           Matrícula
-          <input type="text" id="req-ra" required />
+          <input
+            type="text"
+            id="req-ra"
+            required
+            inputmode="numeric"
+          />
         </label>
 
         <label>
@@ -130,7 +150,13 @@
 
         <label>
           Telefone do responsável
-          <input type="tel" id="req-resp-tel" required placeholder="48999999999" />
+          <input
+            type="tel"
+            id="req-resp-tel"
+            required
+            placeholder="48999999999"
+            inputmode="tel"
+          />
         </label>
 
         <label>
@@ -152,8 +178,9 @@
         <div class="info-box">
           <h3>Autorização de saída antecipada</h3>
           <p>
-            A autorização de saída antecipada permite que estudantes menores saiam do câmpus
-            em situações específicas, com acordo prévio entre família e estudante.
+            A autorização de saída antecipada permite que estudantes menores
+            saiam do câmpus em situações específicas, com acordo prévio entre
+            família e estudante.
           </p>
           <p>Ela é válida apenas para:</p>
           <ul>
@@ -164,23 +191,33 @@
             <li>Finalização antecipada de avaliações.</li>
           </ul>
           <p>
-            Para outras situações, continua valendo o contato com a Coordenadoria Pedagógica.
+            Para outras situações, continua valendo o contato com a
+            Coordenadoria Pedagógica.
           </p>
           <p>
             <strong>Links úteis:</strong><br />
             Modelo de autorização em PDF:
-            <a href="https://drive.google.com/file/d/1quMZtj1anlwpyKQMkZf6BSiIJJZBwkDA/view"
-               target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://drive.google.com/file/d/1quMZtj1anlwpyKQMkZf6BSiIJJZBwkDA/view"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               abrir modelo
             </a><br />
             Assinador gov.br:
-            <a href="https://assinador.iti.br/"
-               target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://assinador.iti.br/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               acessar assinador
             </a><br />
             Formulário institucional completo:
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLSdc7TBD05qC_7_iKxxi9TDlT6W5kWzR3qtEQNR-lCkMWXa1lQ/viewform"
-               target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdc7TBD05qC_7_iKxxi9TDlT6W5kWzR3qtEQNR-lCkMWXa1lQ/viewform"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               abrir formulário
             </a>
           </p>
@@ -194,23 +231,25 @@
 
         <label class="checkbox-line">
           <input type="checkbox" id="req-resp-ok" />
-          Entreguei (ou entregarei) na coordenação a autorização assinada pelo responsável.
+          Entreguei (ou entregarei) na coordenação a autorização assinada pelo
+          responsável.
         </label>
 
         <button type="submit" class="primary">
-          Enviar pedido de carteirinha
+          Enviar pedido de carteira de saída
         </button>
       </form>
     </section>
 
-    <!-- TELA DA CARTEIRINHA DO ESTUDANTE -->
+    <!-- TELA DA CARTEIRA DO ESTUDANTE -->
     <section id="card-screen" class="screen hidden">
-      <header class="top-bar">
-        <h2>Minha Carteirinha</h2>
-        <button id="logout-btn" class="link-button" type="button">Sair</button>
-      </header>
-
       <div class="card-rotated-wrapper">
+
+        <!-- Botão flutuante de saída -->
+        <button id="logout-btn" class="logout-floating" type="button">
+          Sair
+        </button>
+
         <div class="card">
           <div class="card-header">
             <div class="card-header-left">
@@ -228,7 +267,7 @@
                 SANTA CATARINA – CÂMPUS GAROPABA
               </span>
               <span class="header-line-big">
-                CARTEIRA DE IDENTIFICAÇÃO ESTUDANTIL
+                CARTEIRA DE AUTORIZAÇÃO DE SAÍDA ANTECIPADA
               </span>
             </div>
           </div>
@@ -283,8 +322,8 @@
                 </div>
               </div>
 
-              <!-- SITUAÇÃO em linha cheia -->
-              <div class="card-field full">
+              <!-- SITUAÇÃO em linha cheia (oculta no layout, mas mantida pro JS) -->
+              <div class="card-field full status-field">
                 <span class="field-label">SITUAÇÃO / SAÍDA ANTECIPADA</span>
                 <span class="field-value" id="card-status-msg"></span>
               </div>
@@ -294,9 +333,9 @@
                 <span class="footer-title">Observações</span>
                 <span class="footer-text">
                   Válida exclusivamente para saída antecipada nas seguintes situações:
-                  trabalhos acadêmicos fora de horário de aula; troca de horário de aulas;
-                  ausência eventual de professores(as); atendimentos extraclasse ou
-                  monitoria; finalização antecipada de avaliações.
+                  trabalhos acadêmicos fora de horário de aula; troca de horário de
+                  aulas; ausência eventual de professores(as); atendimentos
+                  extraclasse ou monitoria; finalização antecipada de avaliações.
                 </span>
               </div>
             </div>
@@ -309,11 +348,13 @@
     <section id="admin-screen" class="screen hidden">
       <header class="top-bar">
         <h2>Painel de Aprovação</h2>
-        <button id="admin-logout-btn" class="link-button" type="button">Sair</button>
+        <button id="admin-logout-btn" class="link-button" type="button">
+          Sair
+        </button>
       </header>
 
       <p class="subtitle">
-        Abaixo estão os pedidos de carteirinha pendentes de aprovação.
+        Abaixo estão os pedidos de carteira de saída pendentes de aprovação.
       </p>
 
       <div class="table-wrapper">

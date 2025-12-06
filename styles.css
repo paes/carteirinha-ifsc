@@ -198,27 +198,25 @@ button.primary:active {
   width: 100vw;
   height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
+  justify-content: center;   /* centro horizontal */
+  align-items: center;       /* centro vertical */
+  padding: 0;
+  background: #222;
 }
 
-/* CARTÃO ROTACIONADO 90°
-   - width: 95vh  -> vira altura visível depois de girar
-   - height: 95vw -> vira largura visível depois de girar
-   => ocupa ~95% da tela em QUALQUER celular, sempre deitado.
-*/
+/* CARTÃO ROTACIONADO 90° */
 
 .card {
   background: #f8faf8;
   border-radius: 12px;
   border: 1px solid #ccd1d7;
   color: var(--ifsc-preto);
-  display: flex;
   flex-direction: column;
+  flex-shrink: 0;                 /* não deixa o flex encolher */
 
-  width: 95vh;
-  height: 95vw;
+  /* usa quase o máximo da tela (leve margem pra status bar, etc.) */
+  width: max(92vw, 92vh);         /* vira ALTURA visual depois do rotate */
+  height: min(92vw, 92vh);        /* vira LARGURA visual depois do rotate */
 
   overflow: hidden;
   transform: rotate(90deg);
@@ -230,8 +228,8 @@ button.primary:active {
 .card-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0.9rem;
+  gap: 0.45rem;
+  padding: 0.35rem 0.55rem;
   background: #111111;
   color: #ffffff;
 }
@@ -241,15 +239,15 @@ button.primary:active {
 }
 
 .logo-horizontal {
-  max-height: 30px;
+  max-height: 26px;
   width: auto;
 }
 
 .card-header-right {
   display: flex;
   flex-direction: column;
-  font-size: 0.7rem;
-  line-height: 1.2;
+  font-size: 0.68rem;
+  line-height: 1.15;
 }
 
 .header-line-small {
@@ -265,26 +263,26 @@ button.primary:active {
 .header-line-big {
   text-transform: uppercase;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 /* Área principal: foto + campos */
 
 .card-main {
   display: flex;
-  padding: 0.9rem;
-  gap: 0.9rem;
+  padding: 0.45rem;
+  gap: 0.45rem;
 }
 
 /* Foto + carimbo */
 
 .card-photo {
-  flex: 0 0 30%;
+  flex: 0 0 26%;           /* coluna da foto um pouco mais estreita */
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;      /* CENTRALIZA foto + stamp na coluna */
   justify-content: flex-start;
-  gap: 0.45rem;
+  gap: 0.3rem;
 }
 
 .photo-placeholder {
@@ -296,7 +294,7 @@ button.primary:active {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: #555;
   background-size: cover;
@@ -306,12 +304,13 @@ button.primary:active {
 /* Carimbo grande */
 
 .card-stamp {
-  width: 100%;
+  width: 90%;                 /* menor que a coluna e CENTRALIZADO */
+  align-self: center;
   text-align: center;
   font-weight: 800;
-  font-size: 1rem;
+  font-size: 0.95rem;
   text-transform: uppercase;
-  padding: 0.3rem 0.4rem;
+  padding: 0.25rem 0.4rem;
   border-radius: 4px;
   border: 2px solid transparent;
 }
@@ -332,19 +331,18 @@ button.primary:active {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.32rem;
 }
 
-/* linha em duas colunas */
 .card-row {
   display: flex;
-  gap: 0.45rem;
+  gap: 0.4rem;
 }
 
 .card-field {
   border: 1px solid #ccd1d7;
   border-radius: 4px;
-  padding: 0.35rem 0.5rem;
+  padding: 0.28rem 0.42rem;
   background: #ffffff;
   display: flex;
   flex-direction: column;
@@ -358,15 +356,20 @@ button.primary:active {
   flex: 1;
 }
 
+/* Campo de SITUAÇÃO oculto para ganhar espaço vertical */
+.status-field {
+  display: none;
+}
+
 .field-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
   color: #555;
-  margin-bottom: 0.12rem;
+  margin-bottom: 0.1rem;
 }
 
 .field-value {
-  font-size: 0.98rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #222;
   word-wrap: break-word;
@@ -378,24 +381,24 @@ button.primary:active {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .tag-turma {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  padding: 0.12rem 0.45rem;
+  padding: 0.1rem 0.4rem;
   border-radius: 999px;
   border: 1px solid #333;
 }
 
-/* "Observações" como bloco logo após SITUAÇÃO / SAÍDA ANTECIPADA */
+/* "Observações" como bloco logo após os campos */
 
 .card-footer {
-  margin-top: 0.18rem;
-  padding: 0.35rem 0.5rem 0.45rem 0.5rem;
+  margin-top: 0.12rem;
+  padding: 0.28rem 0.4rem 0.32rem 0.4rem;
   border-radius: 4px;
   border: 1px solid #ccd1d7;
   background: #f1f5f1;
@@ -403,18 +406,39 @@ button.primary:active {
 
 .footer-title {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
   font-weight: 600;
   color: #555;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.12rem;
 }
 
 .footer-text {
   display: block;
-  font-size: 0.7rem;
-  line-height: 1.35;
+  font-size: 0.66rem;
+  line-height: 1.3;
   color: #444;
+}
+
+/* Botão flutuante de SAIR na tela da carteirinha */
+
+.logout-floating {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+
+  padding: 0.7rem 1.4rem;
+  border-radius: 999px;
+
+  background: var(--ifsc-verde);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
 }
 
 /* TABELA DO ADMIN */
@@ -463,11 +487,10 @@ button.reject-btn {
 }
 
 /* ===========================
-   AJUSTES PARA TELAS MENORES
+   AJUSTES PARA TELAS MENORES (LARGURA)
    =========================== */
 
 @media (max-width: 768px) {
-  /* login / request / admin seguem com margens e padding normais */
   .screen {
     margin: 1rem;
     padding: 1.25rem;
@@ -497,11 +520,11 @@ button.reject-btn {
   }
 
   .card-header-right {
-    font-size: 0.65rem;
+    font-size: 0.64rem;
   }
 
   .header-line-big {
-    font-size: 0.75rem;
+    font-size: 0.74rem;
   }
 
   .field-label {
@@ -509,15 +532,15 @@ button.reject-btn {
   }
 
   .field-value {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
   }
 
   .tag-turma {
-    font-size: 1.05rem;
+    font-size: 1rem;
   }
 
   .card-stamp {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
   .footer-title {
@@ -525,6 +548,54 @@ button.reject-btn {
   }
 
   .footer-text {
-    font-size: 0.68rem;
+    font-size: 0.65rem;
+  }
+}
+
+/* ===========================
+   AJUSTES PARA TELAS MAIS BAIXINHAS (ALTURA)
+   =========================== */
+
+@media (max-height: 720px) {
+  .card-header-right {
+    font-size: 0.6rem;
+  }
+
+  .header-line-big {
+    font-size: 0.7rem;
+  }
+
+  .field-label {
+    font-size: 0.64rem;
+  }
+
+  .field-value {
+    font-size: 0.85rem;
+  }
+
+  .tag-turma {
+    font-size: 0.9rem;
+  }
+
+  .card-stamp {
+    font-size: 0.85rem;
+  }
+
+  .footer-title {
+    font-size: 0.64rem;
+  }
+
+  .footer-text {
+    font-size: 0.6rem;
+    line-height: 1.25;
+  }
+
+  .card-main {
+    padding: 0.4rem;
+    gap: 0.38rem;
+  }
+
+  .card-field {
+    padding: 0.25rem 0.36rem;
   }
 }
