@@ -10,11 +10,10 @@
   <!-- Manifest do PWA -->
   <link rel="manifest" href="manifest.webmanifest" />
 
-  <!-- Favicons (tudo vindo de icons/) -->
+  <!-- Favicons (todos em icons/) -->
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
-  <!-- opcional, mas ok deixar também -->
   <link rel="icon" href="icons/favicon.ico" />
 
   <link rel="stylesheet" href="styles.css" />
@@ -23,8 +22,8 @@
 <body>
   <main id="app">
 
-    <!-- TELA DE LOGIN -->
-    <section id="login-screen" class="screen">
+    <!-- TELA INICIAL (LOGIN / HOME) -->
+    <section id="login-screen" class="screen screen-login">
       <div class="brand-login">
         <img
           src="icons/logo-v.png"
@@ -34,39 +33,49 @@
       </div>
 
       <h1>Carteira de Saída Antecipada</h1>
-      <p class="subtitle">Faça login para acessar sua carteira de saída</p>
 
-      <form id="login-form">
-        <label>
-          Matrícula
-          <input
-            type="text"
-            id="ra"
-            required
-            placeholder="Ex: 20251234"
-            inputmode="numeric"
-          />
-        </label>
-
-        <label>
-          Senha
-          <input
-            type="password"
-            id="password"
-            required
-            placeholder="••••••"
-          />
-        </label>
-
-        <button type="submit" class="primary">Entrar</button>
-        <p id="login-error" class="error hidden">
-          Matrícula ou senha inválidos.
+      <!-- Área de login com Google -->
+      <div id="login-area">
+        <p class="subtitle">
+          Faça login com sua conta institucional para acessar sua carteirinha.
         </p>
-      </form>
 
-      <button id="go-to-request" class="link-button" type="button">
-        Primeiro acesso? Solicitar carteira
-      </button>
+        <button id="google-login-btn" type="button" class="google-btn">
+          <img src="icons/google-logo.webp" alt="" class="google-icon" />
+          <span>Entrar com Google</span>
+        </button>
+
+        <p class="subtitle" style="margin-top: 0.75rem; font-size: 0.85rem;">
+          Apenas contas <strong>@aluno.ifsc.edu.br</strong> e <strong>@ifsc.edu.br</strong> são aceitas.
+        </p>
+      </div>
+
+      <!-- Área exibida após login -->
+      <div id="home-area" class="hidden">
+        <h2>Olá, <span id="user-name"></span></h2>
+        <p class="subtitle">
+          Logado como <span id="user-email"></span>
+        </p>
+
+        <div class="home-actions">
+          <button id="home-card-btn" type="button" class="primary" disabled>
+            Ver minha carteira
+          </button>
+          <p id="home-card-msg" class="small-note"></p>
+
+          <button id="home-request-btn" type="button">
+            Solicitar / atualizar carteira
+          </button>
+
+          <button id="home-admin-btn" type="button" class="hidden">
+            Ir para painel administrativo
+          </button>
+
+          <button id="home-logout-btn" type="button" class="link-button">
+            Sair da conta
+          </button>
+        </div>
+      </div>
     </section>
 
     <!-- TELA DE SOLICITAÇÃO DE CARTEIRA (ESTUDANTE) -->
@@ -144,16 +153,6 @@
         </label>
 
         <label>
-          E-mail institucional (login@aluno.ifsc.edu.br)
-          <input
-            type="email"
-            id="req-email"
-            required
-            placeholder="login@aluno.ifsc.edu.br"
-          />
-        </label>
-
-        <label>
           Nome do responsável
           <input type="text" id="req-resp-nome" required />
         </label>
@@ -172,16 +171,6 @@
         <label>
           Foto 3x4 (máx. 300 KB, formato imagem)
           <input type="file" id="req-foto" accept="image/*" />
-        </label>
-
-        <label>
-          Defina uma senha para acesso
-          <input type="password" id="req-senha" required />
-        </label>
-
-        <label>
-          Confirme a senha
-          <input type="password" id="req-senha2" required />
         </label>
 
         <!-- BLOCO DE INFORMAÇÕES SOBRE AUTORIZAÇÃO DE SAÍDA ANTECIPADA -->
@@ -255,9 +244,9 @@
     <section id="card-screen" class="screen hidden">
       <div class="card-rotated-wrapper">
 
-        <!-- Botão flutuante de saída -->
+        <!-- Botão flutuante de VOLTAR -->
         <button id="logout-btn" class="logout-floating" type="button">
-          Sair
+          Voltar
         </button>
 
         <div class="card">
@@ -332,7 +321,7 @@
                 </div>
               </div>
 
-              <!-- SITUAÇÃO em linha cheia (oculta no layout, mas mantida pro JS) -->
+              <!-- SITUAÇÃO em linha cheia (mantido só pro texto, se quiser) -->
               <div class="card-field full status-field">
                 <span class="field-label">SITUAÇÃO / SAÍDA ANTECIPADA</span>
                 <span class="field-value" id="card-status-msg"></span>
@@ -357,37 +346,175 @@
     <!-- TELA DO ADMINISTRADOR -->
     <section id="admin-screen" class="screen hidden">
       <header class="top-bar">
-        <h2>Painel de Aprovação</h2>
+        <h2>Painel administrativo</h2>
         <button id="admin-logout-btn" class="link-button" type="button">
-          Sair
+          Voltar
         </button>
       </header>
 
-      <p class="subtitle">
-        Abaixo estão os pedidos de carteira de saída pendentes de aprovação.
-      </p>
+      <!-- Abas -->
+      <div class="admin-tabs">
+        <button
+          id="admin-tab-pendentes"
+          type="button"
+          class="admin-tab-button active"
+        >
+          Pedidos pendentes
+        </button>
+        <button
+          id="admin-tab-ativos"
+          type="button"
+          class="admin-tab-button"
+        >
+          Carteiras ativas
+        </button>
+      </div>
 
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Matrícula</th>
-              <th>Curso</th>
-              <th>Turma</th>
-              <th>Formulário</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="admin-table-body">
-            <!-- preenchido via JS -->
-          </tbody>
-        </table>
+      <!-- Área: Pedidos pendentes -->
+      <div id="admin-pendentes-area" class="admin-section">
+        <p class="subtitle">
+          Abaixo estão os pedidos de carteira de saída pendentes de aprovação.
+        </p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Matrícula</th>
+                <th>Curso</th>
+                <th>Turma</th>
+                <th>Formulário</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table-body">
+              <!-- preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Área: Carteiras ativas -->
+      <div id="admin-ativos-area" class="admin-section hidden">
+        <p class="subtitle">
+          Busque e filtre as carteiras ativas.
+        </p>
+
+        <div class="admin-filters">
+          <input
+            type="text"
+            id="admin-search"
+            placeholder="Buscar por nome ou matrícula"
+          />
+
+          <select id="admin-filter-curso">
+            <option value="">Todos os cursos</option>
+            <option value="Curso Técnico Integrado em Administração">
+              Curso Técnico Integrado em Administração
+            </option>
+            <option value="Curso Técnico Integrado em Informática">
+              Curso Técnico Integrado em Informática
+            </option>
+            <option value="Curso Técnico Integrado em Lazer">
+              Curso Técnico Integrado em Lazer
+            </option>
+            <option value="Curso Técnico Concomitante em Biotecnologia">
+              Curso Técnico Concomitante em Biotecnologia
+            </option>
+          </select>
+
+          <select id="admin-filter-turma">
+            <option value="">Todas as turmas</option>
+            <!-- Mesmo conjunto de turmas do formulário -->
+            <option value="INF23">INF23</option>
+            <option value="INF24">INF24</option>
+            <option value="INF25">INF25</option>
+            <option value="INF26">INF26</option>
+            <option value="LAZ25">LAZ25</option>
+            <option value="LAZ26">LAZ26</option>
+            <option value="ADM23">ADM23</option>
+            <option value="ADM24">ADM24</option>
+            <option value="ADM25">ADM25</option>
+            <option value="ADM26">ADM26</option>
+            <option value="BIT23">BIT23</option>
+            <option value="BIT24">BIT24</option>
+            <option value="BIT25">BIT25</option>
+            <option value="BIT26">BIT26</option>
+          </select>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Matrícula</th>
+                <th>Curso</th>
+                <th>Turma</th>
+                <th>Responsável</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="admin-ativos-body">
+              <!-- preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
   </main>
 
+    <!-- Firebase (SDK compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <!-- App Check compat (reCAPTCHA Enterprise) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBCPZfzhJFe9Z9xvCFPQzzNzKZI2E1zBZc",
+      authDomain: "ifsc-carteirinha.firebaseapp.com",
+      projectId: "ifsc-carteirinha",
+      storageBucket: "ifsc-carteirinha.firebasestorage.app",
+      messagingSenderId: "318167433982",
+      appId: "1:318167433982:web:7e5dd8e6c47a92d30e9baf"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    // === APP CHECK: ativa só fora do localhost ===
+    (function() {
+      const isLocalhost =
+        location.hostname === "localhost" ||
+        location.hostname === "127.0.0.1";
+
+      if (!isLocalhost) {
+        const appCheck = firebase.appCheck();
+        appCheck.activate(
+          "6Lc5cCMsAAAAAE8vFknf7hyu9XBz21QNxsk-rxap",
+          true // auto-refresh
+        );
+      } else {
+        console.warn("[AppCheck] Não ativado em localhost (modo dev).");
+      }
+    })();
+
+    // Firestore e Auth globais para app.js
+    const firestore = firebase.firestore();
+    const auth = firebase.auth();
+
+    // (opcional) modo offline do Firestore
+    firebase.firestore().enablePersistence().catch((err) => {
+      console.warn("Persistência offline não habilitada:", err.code);
+    });
+  </script>
+
+  <!-- Seu app -->
   <script src="app.js"></script>
+
 </body>
 </html>

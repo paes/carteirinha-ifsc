@@ -1,161 +1,147 @@
 // =============================
-// "Banco" em localStorage
+// Firestore / coleção
 // =============================
 
-const USERS_KEY = "ifscCarteirinhaUsers_v1";
-const SESSION_KEY = "ifscCarteirinhaSession_v1";
+const studentsCollection = firestore.collection("students");
 
-function loadUsers() {
-  const data = localStorage.getItem(USERS_KEY);
-  return data ? JSON.parse(data) : [];
+function isStudentEmail(email) {
+  const e = (email || "").toLowerCase();
+  return e.endsWith("@aluno.ifsc.edu.br");
 }
 
-function saveUsers(users) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
-function getSession() {
-  const data = localStorage.getItem(SESSION_KEY);
-  return data ? JSON.parse(data) : null;
-}
-
-function setSession(ra) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ ra }));
-}
-
-function clearSession() {
-  localStorage.removeItem(SESSION_KEY);
+function isStaffEmail(email) {
+  const e = (email || "").toLowerCase();
+  // evita contar aluno duas vezes
+  return e.endsWith("@ifsc.edu.br") && !e.endsWith("@aluno.ifsc.edu.br");
 }
 
 const db = {
-  findUserByRa(ra) {
-    return loadUsers().find((u) => u.ra === ra);
+  // Retorna carteira do usuário logado (ou null)
+  async getCurrentStudentCard() {
+    const user = auth.currentUser;
+    if (!user) return null;
+
+    const snapshot = await studentsCollection
+      .where("ownerUid", "==", user.uid)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) return null;
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...doc.data() };
   },
 
-  createOrUpdateStudent({
+  // Cria / atualiza carteira para o usuário logado
+  async createOrUpdateCurrentStudentCard({
     ra,
-    senha,
     nome,
     curso,
     turma,
     dataNascimento,
-    email,
-    idade,
     responsavelNome,
     responsavelTelefone,
     responsavelOk,
     saidaAutorizada,
     fotoDataUrl
   }) {
-    const users = loadUsers();
-    let user = users.find((u) => u.ra === ra);
+    const userAuth = auth.currentUser;
+    if (!userAuth) throw new Error("Não autenticado");
 
-    if (!user) {
-      user = {
-        ra,
-        senha,
-        nome,
-        curso,
-        turma,
-        dataNascimento: dataNascimento || null,
-        email: email || "",
-        idade: idade || "",
-        responsavelNome,
-        responsavelTelefone,
-        role: "student",
-        status: "pending", // sempre inicia pendente
-        responsavelOk: !!responsavelOk,
-        saidaAutorizada: !!saidaAutorizada,
-        fotoDataUrl: fotoDataUrl || null
-      };
-      users.push(user);
+    // vamos usar o próprio uid como ID do doc
+    const docRef = studentsCollection.doc(userAuth.uid);
+    const existing = await docRef.get();
+
+    const baseData = {
+      ownerUid: userAuth.uid,
+      ownerEmail: userAuth.email || "",
+      ownerName: userAuth.displayName || "",
+      ra: ra || "",
+      nome: nome || "",
+      curso: curso || "",
+      turma: turma || "",
+      dataNascimento: dataNascimento || null,
+      email: userAuth.email || "",
+      responsavelNome: responsavelNome || "",
+      responsavelTelefone: responsavelTelefone || "",
+      role: "student",
+      responsavelOk: !!responsavelOk,
+      saidaAutorizada: !!saidaAutorizada,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (!existing.exists) {
+      baseData.status = "pending";
+      baseData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
     } else {
-      if (senha) user.senha = senha;
-      if (nome) user.nome = nome;
-      if (curso) user.curso = curso;
-      if (turma) user.turma = turma;
-      if (dataNascimento) user.dataNascimento = dataNascimento;
-      if (email) user.email = email;
-      if (idade) user.idade = idade;
-      if (responsavelNome) user.responsavelNome = responsavelNome;
-      if (responsavelTelefone) user.responsavelTelefone = responsavelTelefone;
-      user.responsavelOk = !!responsavelOk;
-      if (saidaAutorizada !== undefined) {
-        user.saidaAutorizada = !!saidaAutorizada;
+      // mantém status anterior se já existir
+      const current = existing.data();
+      if (current && current.status) {
+        baseData.status = current.status;
       }
-      if (fotoDataUrl) {
-        user.fotoDataUrl = fotoDataUrl;
+      if (current && current.fotoDataUrl && !fotoDataUrl) {
+        // mantém foto antiga se não mandou nova
+        baseData.fotoDataUrl = current.fotoDataUrl;
       }
-      if (!user.role) user.role = "student";
-      if (!user.status) user.status = "pending";
     }
 
-    saveUsers(users);
-    return user;
-  },
-
-  updateStudentStatus(ra, newStatus) {
-    const users = loadUsers();
-    const user = users.find((u) => u.ra === ra && u.role === "student");
-    if (!user) return null;
-    user.status = newStatus;
-    saveUsers(users);
-    return user;
-  },
-
-  listPendingStudents() {
-    return loadUsers().filter(
-      (u) => u.role === "student" && u.status === "pending"
-    );
-  }
-};
-
-// =============================
-// Auth (com admin hard-coded)
-// =============================
-
-const auth = {
-  login(ra, senha) {
-    if (ra === "admin" && senha === "admin123") {
-      setSession("admin");
-      return {
-        ra: "admin",
-        nome: "Administrador",
-        role: "admin",
-        status: "approved"
-      };
+    if (fotoDataUrl) {
+      baseData.fotoDataUrl = fotoDataUrl;
     }
 
-    const user = db.findUserByRa(ra);
-    if (!user) return null;
-    if (user.senha !== senha) return null;
-    setSession(user.ra);
-    return user;
+    await docRef.set(baseData, { merge: true });
+    const saved = await docRef.get();
+    return { id: saved.id, ...saved.data() };
   },
 
-  logout() {
-    clearSession();
+  // Atualiza status (approved / pending / rejected) por ID do doc
+  async updateStudentStatus(docId, newStatus) {
+    const docRef = studentsCollection.doc(docId);
+    await docRef.update({
+      status: newStatus,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    const updated = await docRef.get();
+    return { id: updated.id, ...updated.data() };
   },
 
-  getCurrentUser() {
-    const session = getSession();
-    if (!session) return null;
+  // Lista alunos pendentes
+  async listPendingStudents() {
+    const snapshot = await studentsCollection
+      .where("status", "==", "pending")
+      .get();
 
-    if (session.ra === "admin") {
-      return {
-        ra: "admin",
-        nome: "Administrador",
-        role: "admin",
-        status: "approved"
-      };
-    }
+    const arr = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
 
-    const user = db.findUserByRa(session.ra);
-    if (!user) {
-      clearSession();
-      return null;
-    }
-    return user;
+    arr.sort((a, b) => {
+      const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return ta - tb;
+    });
+
+    return arr;
+  },
+
+  // Lista alunos com carteira aprovada (ativas)
+  async listApprovedStudents() {
+    const snapshot = await studentsCollection
+      .where("status", "==", "approved")
+      .get();
+
+    const arr = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    arr.sort((a, b) => {
+      const nomeA = (a.nome || "").toLowerCase();
+      const nomeB = (b.nome || "").toLowerCase();
+      return nomeA.localeCompare(nomeB);
+    });
+
+    return arr;
   }
 };
 
@@ -163,7 +149,6 @@ const auth = {
 // Utils
 // =============================
 
-// idade a partir da data de nascimento
 function calcularIdadeAPartirDeData(dataNascStr) {
   if (!dataNascStr) return "";
   const hoje = new Date();
@@ -184,7 +169,6 @@ function calcularIdadeAPartirDeData(dataNascStr) {
   return idade + " anos";
 }
 
-// formatação bonitinha do telefone
 function formatPhone(phone) {
   if (!phone) return "";
   const digits = phone.replace(/\D/g, "");
@@ -203,7 +187,6 @@ function formatPhone(phone) {
   }
 }
 
-// ler arquivo como DataURL (para armazenar imagem no localStorage)
 function readFileAsDataURL(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -223,15 +206,56 @@ document.addEventListener("DOMContentLoaded", () => {
   const cardScreen = document.getElementById("card-screen");
   const adminScreen = document.getElementById("admin-screen");
 
+  const loginArea = document.getElementById("login-area");
+  const homeArea = document.getElementById("home-area");
+
+  const googleLoginBtn = document.getElementById("google-login-btn");
+  const homeCardBtn = document.getElementById("home-card-btn");
+  const homeRequestBtn = document.getElementById("home-request-btn");
+  const homeAdminBtn = document.getElementById("home-admin-btn");
+  const homeLogoutBtn = document.getElementById("home-logout-btn");
+  const homeCardMsg = document.getElementById("home-card-msg");
+
+  const userNameSpan = document.getElementById("user-name");
+  const userEmailSpan = document.getElementById("user-email");
+
+  const backToLoginBtn = document.getElementById("back-to-login");
+  const requestForm = document.getElementById("request-form");
+  const logoutBtn = document.getElementById("logout-btn");
+  const adminLogoutBtn = document.getElementById("admin-logout-btn");
+
+  // selects curso/turma para fazer o filtro
+  const reqCursoSelect = document.getElementById("req-curso");
+  const reqTurmaSelect = document.getElementById("req-turma");
+
+  // elementos Admin (abas e filtros)
+  const adminTabsPendingBtn = document.getElementById("admin-tab-pendentes");
+  const adminTabsActiveBtn = document.getElementById("admin-tab-ativos");
+  const adminPendentesArea = document.getElementById("admin-pendentes-area");
+  const adminAtivosArea = document.getElementById("admin-ativos-area");
+
+  const adminTableBody = document.getElementById("admin-table-body");
+  const adminAtivosBody = document.getElementById("admin-ativos-body");
+  const adminSearchInput = document.getElementById("admin-search");
+  const adminFilterCurso = document.getElementById("admin-filter-curso");
+  const adminFilterTurma = document.getElementById("admin-filter-turma");
+
+  let currentStudentCard = null;
+  let adminApprovedList = [];
+
+  // garante que só UMA tela aparece por vez
   function showScreen(screen) {
     [loginScreen, requestScreen, cardScreen, adminScreen].forEach((s) => {
       if (!s) return;
       s.classList.add("hidden");
     });
     if (screen) screen.classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "instant" });
   }
 
-  function renderStudentCard(user) {
+  function renderStudentCard(data) {
+    if (!data) return;
+
     const cardName = document.getElementById("card-name");
     const cardRa = document.getElementById("card-ra");
     const cardCourse = document.getElementById("card-course");
@@ -243,55 +267,49 @@ document.addEventListener("DOMContentLoaded", () => {
     const photoPlaceholder = document.getElementById("card-photo-placeholder");
     const cardStamp = document.getElementById("card-stamp");
 
-    // 👉 pega o container da carteirinha
     const cardElement = document.querySelector(".card");
 
-    if (cardName) cardName.textContent = user.nome || "";
-    if (cardRa) cardRa.textContent = user.ra || "";
-    if (cardCourse) cardCourse.textContent = user.curso || "";
-    if (cardTurma) cardTurma.textContent = user.turma || "";
+    if (cardName) cardName.textContent = data.nome || "";
+    if (cardRa) cardRa.textContent = data.ra || "";
+    if (cardCourse) cardCourse.textContent = data.curso || "";
+    if (cardTurma) cardTurma.textContent = data.turma || "";
 
     if (cardIdade) {
       let idadeTexto = "";
-      if (user.dataNascimento) {
-        idadeTexto = calcularIdadeAPartirDeData(user.dataNascimento);
-      } else if (user.idade) {
-        idadeTexto = user.idade;
+      if (data.dataNascimento) {
+        idadeTexto = calcularIdadeAPartirDeData(data.dataNascimento);
+      } else if (data.idade) {
+        idadeTexto = data.idade;
       }
       cardIdade.textContent = idadeTexto;
     }
 
-    if (cardRespNome) cardRespNome.textContent = user.responsavelNome || "";
-    if (cardRespTel) cardRespTel.textContent = formatPhone(user.responsavelTelefone || "");
+    if (cardRespNome) cardRespNome.textContent = data.responsavelNome || "";
+    if (cardRespTel)
+      cardRespTel.textContent = formatPhone(data.responsavelTelefone || "");
 
-    // foto 3x4
     if (photoPlaceholder) {
-      if (user.fotoDataUrl) {
-        photoPlaceholder.style.backgroundImage = `url(${user.fotoDataUrl})`;
+      if (data.fotoDataUrl) {
+        photoPlaceholder.style.backgroundImage = `url(${data.fotoDataUrl})`;
         photoPlaceholder.textContent = "";
       } else {
         photoPlaceholder.style.backgroundImage = "none";
         photoPlaceholder.textContent = "FOTO";
       }
     }
-    // carimbo grande e situação
+
     if (cardStamp) {
       cardStamp.classList.remove("authorized", "pending");
 
-      if (user.status === "approved") {
+      if (data.status === "approved") {
         cardStamp.textContent = "SAÍDA AUTORIZADA";
         cardStamp.classList.add("authorized");
-
-        // tira o carimbão diagonal (carteira liberada)
         if (cardElement) {
           cardElement.classList.remove("card-pending");
         }
       } else {
-        // para qualquer coisa que não seja "approved", mostra PENDENTE
         cardStamp.textContent = "PENDENTE";
         cardStamp.classList.add("pending");
-
-        // coloca o carimbão diagonal vermelho por cima da carteirinha
         if (cardElement) {
           cardElement.classList.add("card-pending");
         }
@@ -299,29 +317,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (statusMsg) {
-      if (user.status === "approved") {
-        statusMsg.textContent =
-          "Carteira ativa. Saída antecipada autorizada.";
-      } else if (user.status === "pending") {
+      if (data.status === "approved") {
+        statusMsg.textContent = "Carteira ativa. Saída antecipada autorizada.";
+      } else if (data.status === "pending") {
         statusMsg.textContent =
           "Pedido em análise. Saída antecipada ainda pendente de autorização.";
-      } else if (user.status === "rejected") {
+      } else if (data.status === "rejected") {
         statusMsg.textContent =
-          "Pedido indeferido. Saída antecipada não autorizada. Procure a coordenação.";
+          "Pedido indeferido ou carteira desativada. Saída antecipada não autorizada. Procure a coordenação.";
       } else {
         statusMsg.textContent = "Status da carteira não definido.";
       }
     }
-
-
   }
 
-  function renderAdminPanel() {
-    const tbody = document.getElementById("admin-table-body");
-    if (!tbody) return;
-    tbody.innerHTML = "";
+  // =============================
+  // Painel Admin - Pendentes
+  // =============================
 
-    const pendentes = db.listPendingStudents();
+  async function renderAdminPendingPanel() {
+    if (!adminTableBody) return;
+    adminTableBody.innerHTML = "";
+
+    const pendentes = await db.listPendingStudents();
 
     if (pendentes.length === 0) {
       const tr = document.createElement("tr");
@@ -329,105 +347,349 @@ document.addEventListener("DOMContentLoaded", () => {
       td.colSpan = 6;
       td.textContent = "Nenhum pedido pendente.";
       tr.appendChild(td);
-      tbody.appendChild(tr);
+      adminTableBody.appendChild(tr);
       return;
     }
 
     pendentes.forEach((u) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${u.nome}</td>
-        <td>${u.ra}</td>
-        <td>${u.curso}</td>
+        <td>${u.nome || ""}</td>
+        <td>${u.ra || ""}</td>
+        <td>${u.curso || ""}</td>
         <td>${u.turma || ""}</td>
         <td>${u.responsavelOk ? "Formulário entregue" : "A confirmar"}</td>
         <td>
-          <button class="approve-btn" data-ra="${u.ra}">Aprovar</button>
-          <button class="reject-btn" data-ra="${u.ra}">Rejeitar</button>
+          <button class="approve-btn" data-id="${u.id}">Aprovar</button>
+          <button class="reject-btn" data-id="${u.id}">Rejeitar</button>
         </td>
       `;
-      tbody.appendChild(tr);
+      adminTableBody.appendChild(tr);
     });
 
-    tbody.querySelectorAll(".approve-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const ra = btn.getAttribute("data-ra");
-        db.updateStudentStatus(ra, "approved");
-        renderAdminPanel();
+    adminTableBody.querySelectorAll(".approve-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        await db.updateStudentStatus(id, "approved");
+        await renderAdminPendingPanel();
       });
     });
 
-    tbody.querySelectorAll(".reject-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const ra = btn.getAttribute("data-ra");
-        db.updateStudentStatus(ra, "rejected");
-        renderAdminPanel();
+    adminTableBody.querySelectorAll(".reject-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        await db.updateStudentStatus(id, "rejected");
+        await renderAdminPendingPanel();
       });
     });
   }
 
-  // Decide tela inicial
-  const current = auth.getCurrentUser();
-  if (!current) {
-    showScreen(loginScreen);
-  } else if (current.role === "admin") {
-    renderAdminPanel();
-    showScreen(adminScreen);
-  } else {
-    renderStudentCard(current);
-    showScreen(cardScreen);
+  // =============================
+  // Painel Admin - Ativos
+  // =============================
+
+  function applyAdminActiveFilters() {
+    if (!adminAtivosBody) return;
+    adminAtivosBody.innerHTML = "";
+
+    const search = (adminSearchInput?.value || "").trim().toLowerCase();
+    const curso = adminFilterCurso?.value || "";
+    const turma = adminFilterTurma?.value || "";
+
+    const filtered = adminApprovedList.filter((u) => {
+      if (curso && u.curso !== curso) return false;
+      if (turma && u.turma !== turma) return false;
+
+      if (search) {
+        const alvo = ((u.nome || "") + " " + (u.ra || "")).toLowerCase();
+        if (!alvo.includes(search)) return false;
+      }
+
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 7;
+      td.textContent = "Nenhuma carteira ativa encontrada.";
+      tr.appendChild(td);
+      adminAtivosBody.appendChild(tr);
+      return;
+    }
+
+    filtered.forEach((u) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${u.nome || ""}</td>
+        <td>${u.ra || ""}</td>
+        <td>${u.curso || ""}</td>
+        <td>${u.turma || ""}</td>
+        <td>${u.responsavelNome || ""}</td>
+        <td>${formatPhone(u.responsavelTelefone || "")}</td>
+        <td>
+          <button class="deactivate-btn" data-id="${u.id}">
+            Desativar
+          </button>
+        </td>
+      `;
+      adminAtivosBody.appendChild(tr);
+    });
+
+    adminAtivosBody.querySelectorAll(".deactivate-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        const confirmacao = confirm(
+          "Deseja realmente desativar esta carteira? O estudante deixará de ter a saída antecipada autorizada."
+        );
+        if (!confirmacao) return;
+
+        try {
+          await db.updateStudentStatus(id, "rejected");
+          await loadAdminApprovedAndRender();
+        } catch (err) {
+          console.error("Erro ao desativar carteira:", err);
+          alert("Não foi possível desativar a carteira. Tente novamente.");
+        }
+      });
+    });
   }
 
-  const loginForm = document.getElementById("login-form");
-  const loginError = document.getElementById("login-error");
-  const goToRequestBtn = document.getElementById("go-to-request");
-  const backToLoginBtn = document.getElementById("back-to-login");
-  const requestForm = document.getElementById("request-form");
-  const logoutBtn = document.getElementById("logout-btn");
-  const adminLogoutBtn = document.getElementById("admin-logout-btn");
+  async function loadAdminApprovedAndRender() {
+    adminApprovedList = await db.listApprovedStudents();
+    applyAdminActiveFilters();
+  }
 
-  // LOGIN
-  if (loginForm) {
-    loginForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (loginError) loginError.classList.add("hidden");
+  // =============================
+  // Filtro de turmas por curso (form de request)
+  // =============================
 
-      const ra = document.getElementById("ra")?.value.trim();
-      const senha = document.getElementById("password")?.value || "";
+  let turmaOptions = [];
+  if (reqTurmaSelect) {
+    turmaOptions = Array.from(reqTurmaSelect.querySelectorAll("option")).map(
+      (opt) => {
+        if (!opt.value) {
+          return { opt, group: null };
+        }
+        const prefix = opt.value.slice(0, 3).toUpperCase();
+        return { opt, group: prefix };
+      }
+    );
+  }
 
-      const user = auth.login(ra, senha);
-      if (!user) {
-        if (loginError) loginError.classList.remove("hidden");
+  function aplicarFiltroTurmas(cursoValue) {
+    if (!reqTurmaSelect || turmaOptions.length === 0) return;
+
+    let grupoPermitido = null;
+
+    switch (cursoValue) {
+      case "Curso Técnico Integrado em Informática":
+        grupoPermitido = "INF";
+        break;
+      case "Curso Técnico Integrado em Lazer":
+        grupoPermitido = "LAZ";
+        break;
+      case "Curso Técnico Integrado em Administração":
+        grupoPermitido = "ADM";
+        break;
+      case "Curso Técnico Concomitante em Biotecnologia":
+        grupoPermitido = "BIT";
+        break;
+      default:
+        grupoPermitido = null;
+    }
+
+    reqTurmaSelect.value = "";
+
+    turmaOptions.forEach(({ opt, group }) => {
+      if (!opt.value) {
+        opt.hidden = false;
         return;
       }
-
-      if (user.role === "admin") {
-        renderAdminPanel();
-        showScreen(adminScreen);
-      } else {
-        renderStudentCard(user);
-        showScreen(cardScreen);
-      }
-
-      loginForm.reset();
+      opt.hidden = grupoPermitido ? group !== grupoPermitido : true;
     });
   }
 
-  // BOTÃO "SOLICITAR CARTEIRINHA"
-  if (goToRequestBtn) {
-    goToRequestBtn.addEventListener("click", () => {
+  if (reqCursoSelect) {
+    reqCursoSelect.addEventListener("change", () => {
+      aplicarFiltroTurmas(reqCursoSelect.value);
+    });
+  }
+
+  // =============================
+  // Auth state listener
+  // =============================
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      currentStudentCard = null;
+      if (loginArea) loginArea.classList.remove("hidden");
+      if (homeArea) homeArea.classList.add("hidden");
+      showScreen(loginScreen);
+      return;
+    }
+
+    const email = (user.email || "").toLowerCase();
+    const aluno = isStudentEmail(email);
+    const staff = isStaffEmail(email);
+
+    if (!aluno && !staff) {
+      alert(
+        "Apenas contas institucionais (@aluno.ifsc.edu.br ou @ifsc.edu.br) podem acessar."
+      );
+      await auth.signOut();
+      return;
+    }
+
+    if (loginArea) loginArea.classList.add("hidden");
+    if (homeArea) homeArea.classList.remove("hidden");
+
+    if (userNameSpan) {
+      userNameSpan.textContent = user.displayName || "Usuário IFSC";
+    }
+    if (userEmailSpan) {
+      userEmailSpan.textContent = user.email || "";
+    }
+
+    currentStudentCard = await db.getCurrentStudentCard();
+
+    if (homeCardBtn && homeCardMsg) {
+      if (currentStudentCard && currentStudentCard.status === "approved") {
+        homeCardBtn.disabled = false;
+        homeCardMsg.textContent = "";
+      } else if (currentStudentCard && currentStudentCard.status === "pending") {
+        homeCardBtn.disabled = false;
+        homeCardMsg.textContent =
+          "Seu pedido está em análise. A carteirinha exibirá o status PENDENTE até a aprovação.";
+      } else {
+        homeCardBtn.disabled = true;
+        homeCardMsg.textContent =
+          "Você ainda não possui carteira cadastrada. Clique em “Solicitar / atualizar carteira”.";
+      }
+    }
+
+    if (homeAdminBtn) {
+      if (staff) {
+        homeAdminBtn.classList.remove("hidden");
+      } else {
+        homeAdminBtn.classList.add("hidden");
+      }
+    }
+
+    showScreen(loginScreen);
+  });
+
+  // =============================
+  // Eventos de UI
+  // =============================
+
+  if (googleLoginBtn) {
+    googleLoginBtn.addEventListener("click", async () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: "select_account"
+      });
+      try {
+        await auth.signInWithPopup(provider);
+      } catch (err) {
+        console.error("Erro no login com Google:", err);
+        alert("Não foi possível entrar com o Google. Tente novamente.");
+      }
+    });
+  }
+
+  if (homeCardBtn) {
+    homeCardBtn.addEventListener("click", async () => {
+      if (!currentStudentCard) {
+        alert("Você ainda não possui carteira cadastrada.");
+        return;
+      }
+      currentStudentCard = await db.getCurrentStudentCard();
+      renderStudentCard(currentStudentCard);
+      showScreen(cardScreen);
+    });
+  }
+
+  if (homeRequestBtn) {
+    homeRequestBtn.addEventListener("click", () => {
+      const user = auth.currentUser;
+      if (user) {
+        const nomeInput = document.getElementById("req-nome");
+        if (nomeInput && !nomeInput.value) {
+          nomeInput.value = user.displayName || "";
+        }
+      }
       showScreen(requestScreen);
     });
   }
 
-  // VOLTAR PARA LOGIN
+  if (homeAdminBtn) {
+    homeAdminBtn.addEventListener("click", async () => {
+      // por padrão abre na aba "Pendentes"
+      if (adminTabsPendingBtn && adminTabsActiveBtn) {
+        adminTabsPendingBtn.classList.add("active");
+        adminTabsActiveBtn.classList.remove("active");
+      }
+      if (adminPendentesArea && adminAtivosArea) {
+        adminPendentesArea.classList.remove("hidden");
+        adminAtivosArea.classList.add("hidden");
+      }
+
+      await renderAdminPendingPanel();
+      showScreen(adminScreen);
+    });
+  }
+
+  if (homeLogoutBtn) {
+    homeLogoutBtn.addEventListener("click", () => {
+      auth.signOut();
+    });
+  }
+
+  if (adminTabsPendingBtn) {
+    adminTabsPendingBtn.addEventListener("click", async () => {
+      adminTabsPendingBtn.classList.add("active");
+      if (adminTabsActiveBtn) adminTabsActiveBtn.classList.remove("active");
+      if (adminPendentesArea) adminPendentesArea.classList.remove("hidden");
+      if (adminAtivosArea) adminAtivosArea.classList.add("hidden");
+      await renderAdminPendingPanel();
+    });
+  }
+
+  if (adminTabsActiveBtn) {
+    adminTabsActiveBtn.addEventListener("click", async () => {
+      adminTabsActiveBtn.classList.add("active");
+      if (adminTabsPendingBtn) adminTabsPendingBtn.classList.remove("active");
+      if (adminPendentesArea) adminPendentesArea.classList.add("hidden");
+      if (adminAtivosArea) adminAtivosArea.classList.remove("hidden");
+      await loadAdminApprovedAndRender();
+    });
+  }
+
+  if (adminSearchInput) {
+    adminSearchInput.addEventListener("input", () => {
+      applyAdminActiveFilters();
+    });
+  }
+
+  if (adminFilterCurso) {
+    adminFilterCurso.addEventListener("change", () => {
+      applyAdminActiveFilters();
+    });
+  }
+
+  if (adminFilterTurma) {
+    adminFilterTurma.addEventListener("change", () => {
+      applyAdminActiveFilters();
+    });
+  }
+
   if (backToLoginBtn) {
     backToLoginBtn.addEventListener("click", () => {
       showScreen(loginScreen);
     });
   }
 
-  // FORMULÁRIO DE SOLICITAÇÃO (agora async por causa da foto)
   if (requestForm) {
     requestForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -437,11 +699,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const curso = document.getElementById("req-curso")?.value;
       const turma = document.getElementById("req-turma")?.value;
       const dataNasc = document.getElementById("req-data-nasc")?.value;
-      const email = document.getElementById("req-email")?.value.trim();
       const respNome = document.getElementById("req-resp-nome")?.value.trim();
       const respTel = document.getElementById("req-resp-tel")?.value.trim();
-      const senha = document.getElementById("req-senha")?.value || "";
-      const senha2 = document.getElementById("req-senha2")?.value || "";
       const respOk = document.getElementById("req-resp-ok")?.checked;
       const saidaAutorizada =
         document.getElementById("req-saida-autorizada")?.checked;
@@ -458,24 +717,17 @@ document.addEventListener("DOMContentLoaded", () => {
         !curso ||
         !turma ||
         !dataNasc ||
-        !email ||
         !respNome ||
-        !respTel ||
-        !senha ||
-        !senha2
+        !respTel
       ) {
         alert("Preencha todos os campos obrigatórios.");
         return;
       }
 
-      if (senha !== senha2) {
-        alert("As senhas não coincidem. Verifique e tente novamente.");
-        return;
-      }
-
-      const emailLower = email.toLowerCase();
-      if (!emailLower.endsWith("@aluno.ifsc.edu.br")) {
-        alert("Informe um e-mail institucional válido (@aluno.ifsc.edu.br).");
+      if (!saidaAutorizada || !respOk) {
+        alert(
+          "É obrigatório marcar as duas declarações sobre a saída antecipada e a entrega do termo."
+        );
         return;
       }
 
@@ -495,41 +747,57 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      const user = db.createOrUpdateStudent({
-        ra,
-        senha,
-        nome,
-        curso,
-        turma,
-        dataNascimento: dataNasc,
-        email,
-        responsavelNome: respNome,
-        responsavelTelefone: respTel,
-        responsavelOk: respOk,
-        saidaAutorizada,
-        fotoDataUrl
-      });
+      try {
+        const saved = await db.createOrUpdateCurrentStudentCard({
+          ra,
+          nome,
+          curso,
+          turma,
+          dataNascimento: dataNasc,
+          responsavelNome: respNome,
+          responsavelTelefone: respTel,
+          responsavelOk: respOk,
+          saidaAutorizada,
+          fotoDataUrl
+        });
 
-      setSession(user.ra);
-      renderStudentCard(user);
-      showScreen(cardScreen);
+        currentStudentCard = saved;
 
-      requestForm.reset();
+        if (homeCardBtn && homeCardMsg) {
+          if (saved.status === "approved") {
+            homeCardBtn.disabled = false;
+            homeCardMsg.textContent = "";
+          } else if (saved.status === "pending") {
+            homeCardBtn.disabled = false;
+            homeCardMsg.textContent =
+              "Seu pedido está em análise. A carteirinha exibirá o status PENDENTE até a aprovação.";
+          } else {
+            homeCardBtn.disabled = true;
+            homeCardMsg.textContent =
+              "Você ainda não possui carteira ativa. Aguarde a análise.";
+          }
+        }
+
+        renderStudentCard(saved);
+        showScreen(cardScreen);
+        requestForm.reset();
+      } catch (err) {
+        console.error("Erro ao salvar carteira:", err);
+        alert("Não foi possível salvar a carteira. Tente novamente.");
+      }
     });
   }
 
-  // LOGOUT (estudante)
+  // BOTÃO "VOLTAR" na carteirinha (não desloga)
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
-      auth.logout();
       showScreen(loginScreen);
     });
   }
 
-  // LOGOUT (admin)
+  // BOTÃO "VOLTAR" no admin (não desloga)
   if (adminLogoutBtn) {
     adminLogoutBtn.addEventListener("click", () => {
-      auth.logout();
       showScreen(loginScreen);
     });
   }

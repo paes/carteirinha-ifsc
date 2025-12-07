@@ -38,11 +38,17 @@ main#app {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
-.hidden {
-  display: none;
+.screen.hidden,
+.screen-login.hidden {
+  display: none !important;
 }
 
-h1, h2 {
+.hidden {
+  display: none !important;
+}
+
+h1,
+h2 {
   margin-bottom: 0.5rem;
 }
 
@@ -198,8 +204,8 @@ button.primary:active {
   width: 100vw;
   height: 100vh;
   display: flex;
-  justify-content: center;   /* centro horizontal */
-  align-items: center;       /* centro vertical */
+  justify-content: center; /* centro horizontal */
+  align-items: center; /* centro vertical */
   padding: 0;
   background: #222;
 }
@@ -212,17 +218,17 @@ button.primary:active {
   border: 1px solid #ccd1d7;
   color: var(--ifsc-preto);
   flex-direction: column;
-  flex-shrink: 0;                 /* não deixa o flex encolher */
+  flex-shrink: 0; /* não deixa o flex encolher */
 
   /* usa quase o máximo da tela (leve margem pra status bar, etc.) */
-  width: max(92vw, 92vh);         /* vira ALTURA visual depois do rotate */
-  height: min(92vw, 92vh);        /* vira LARGURA visual depois do rotate */
+  width: max(92vw, 92vh); /* vira ALTURA visual depois do rotate */
+  height: min(92vw, 92vh); /* vira LARGURA visual depois do rotate */
 
   overflow: hidden;
   transform: rotate(90deg);
   transform-origin: center center;
-  
-    /* IMPORTANTE para o overlay funcionar */
+
+  /* IMPORTANTE para o overlay funcionar */
   position: relative;
 }
 
@@ -240,18 +246,15 @@ button.primary:active {
   letter-spacing: 0.4em;
   text-align: center;
 
-  /* tamanho adaptável pra vários celulares */
-  font-size: clamp(3.0rem, 9vw, 6rem);
+  font-size: clamp(3rem, 9vw, 6rem);
 
-  color: rgba(214, 26, 12, 0.7);          /* vermelho bem visível mas não tapa tudo */
+  color: rgba(214, 26, 12, 0.7);
   border: 4px solid rgba(214, 26, 12, 0.9);
   padding: 0.35em 0.8em;
   border-radius: 0.3em;
 
-  pointer-events: none;  /* não atrapalha clique no botão Sair */
+  pointer-events: none;
 }
-
-
 
 .card-pending::before {
   content: "PENDENTE";
@@ -266,12 +269,10 @@ button.primary:active {
   letter-spacing: 0.35em;
   text-align: center;
 
-  /* MAIOR */
   font-size: clamp(3rem, 9vw, 6rem);
 
-  /* Fundo vermelho bem forte */
   background-color: rgba(214, 26, 12, 0.9);
-  color: #ffffff; /* texto branco */
+  color: #ffffff;
 
   border: 5px solid rgba(120, 0, 0, 0.9);
   padding: 0.35em 1.1em;
@@ -281,10 +282,6 @@ button.primary:active {
 
   pointer-events: none;
 }
-
-
-
-
 
 /* Tarja preta no topo */
 
@@ -340,10 +337,10 @@ button.primary:active {
 /* Foto + carimbo */
 
 .card-photo {
-  flex: 0 0 26%;           /* coluna da foto um pouco mais estreita */
+  flex: 0 0 26%;
   display: flex;
   flex-direction: column;
-  align-items: center;      /* CENTRALIZA foto + stamp na coluna */
+  align-items: center;
   justify-content: flex-start;
   gap: 0.3rem;
 }
@@ -367,7 +364,7 @@ button.primary:active {
 /* Carimbo grande */
 
 .card-stamp {
-  width: 90%;                 /* menor que a coluna e CENTRALIZADO */
+  width: 90%;
   align-self: center;
   text-align: center;
   font-weight: 800;
@@ -483,7 +480,7 @@ button.primary:active {
   color: #444;
 }
 
-/* Botão flutuante de SAIR na tela da carteirinha */
+/* Botão flutuante de VOLTAR na tela da carteirinha */
 
 .logout-floating {
   position: fixed;
@@ -504,7 +501,9 @@ button.primary:active {
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
 }
 
-/* TABELA DO ADMIN */
+/* ===========================
+   TABELAS ADMIN
+   =========================== */
 
 .table-wrapper {
   width: 100%;
@@ -522,7 +521,8 @@ thead {
   background: #e5e9ed;
 }
 
-th, td {
+th,
+td {
   padding: 0.45rem 0.55rem;
   border-bottom: 1px solid #d0d4d9;
   text-align: left;
@@ -547,6 +547,61 @@ button.reject-btn {
   background: var(--ifsc-vermelho);
   color: #fff;
   font-size: 0.8rem;
+}
+
+button.deactivate-btn {
+  background: var(--ifsc-vermelho);
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+/* Seções admin */
+
+.admin-section {
+  margin-top: 1rem;
+}
+
+/* Abas admin */
+
+.admin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.admin-tab-button {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #d0d4d9;
+  background: #f4f6f7;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.admin-tab-button.active {
+  background: var(--ifsc-verde);
+  color: #fff;
+  border-color: var(--ifsc-verde);
+}
+
+/* Filtros admin (ativos) */
+
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.admin-filters input[type="text"],
+.admin-filters select {
+  font-size: 0.9rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid #ccd1d7;
 }
 
 /* ===========================
@@ -618,7 +673,6 @@ button.reject-btn {
 /* ===========================
    AJUSTES PARA TELAS MAIS BAIXINHAS (ALTURA)
    =========================== */
-
 @media (max-height: 720px) {
   .card-header-right {
     font-size: 0.6rem;
@@ -661,4 +715,86 @@ button.reject-btn {
   .card-field {
     padding: 0.25rem 0.36rem;
   }
+}
+
+/* Layout geral da tela de login */
+.screen-login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.brand-login {
+  margin-bottom: 1.5rem;
+}
+
+.logo-vertical {
+  max-width: 220px;
+  height: auto;
+}
+
+/* Container dos conteúdos da tela inicial */
+#login-area,
+#home-area {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+#login-area .subtitle {
+  margin-bottom: 1rem;
+}
+
+/* Botão do Google */
+.google-btn {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  border: 1px solid #dadce0;
+  border-radius: 999px;
+  padding: 0.6rem 1rem;
+  background: #ffffff;
+  color: #3c4043;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3);
+  transition: box-shadow 0.15s ease, transform 0.1s ease, background 0.1s ease;
+}
+
+.google-btn:hover {
+  background: #f7f8f8;
+  box-shadow: 0 2px 5px rgba(60, 64, 67, 0.35);
+  transform: translateY(-1px);
+}
+
+.google-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3);
+}
+
+.google-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Área home depois do login */
+.home-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.small-note {
+  font-size: 0.85rem;
+  color: #555;
 }
