@@ -368,6 +368,13 @@
         >
           Carteiras ativas
         </button>
+        <button
+          id="admin-tab-roles"
+          type="button"
+          class="admin-tab-button hidden"
+        >
+          Administradores
+        </button>
       </div>
 
       <!-- Área: Pedidos pendentes -->
@@ -458,6 +465,45 @@
               </tr>
             </thead>
             <tbody id="admin-ativos-body">
+              <!-- preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Área: Administração de administradores (somente admins) -->
+      <div id="admin-roles-area" class="admin-section hidden">
+        <p class="subtitle">
+          Gerencie quais servidores <strong>@ifsc.edu.br</strong> têm acesso ao painel administrativo.
+        </p>
+
+        <form id="admin-roles-form">
+          <label>
+            Login do servidor (sem @ifsc.edu.br)
+            <input
+              type="text"
+              id="admin-role-login"
+              placeholder="ex: jacqueline.bastos"
+            />
+          </label>
+          <button type="submit" class="primary">
+            Adicionar administrador
+          </button>
+          <p class="small-note">
+            Será salvo como <code>login@ifsc.edu.br</code>. Apenas administradores conseguem alterar esta lista.
+          </p>
+        </form>
+
+        <div class="table-wrapper" style="margin-top: 1rem;">
+          <table>
+            <thead>
+              <tr>
+                <th>Email institucional</th>
+                <th>Papel</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="admin-roles-body">
               <!-- preenchido via JS -->
             </tbody>
           </table>

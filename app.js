@@ -1,19 +1,24 @@
 // =============================
-// Firestore / coleção
+// Firestore / coleções
 // =============================
 
 const studentsCollection = firestore.collection("students");
+const rolesCollection = firestore.collection("roles");
 
+// helpers de domínio
 function isStudentEmail(email) {
   const e = (email || "").toLowerCase();
   return e.endsWith("@aluno.ifsc.edu.br");
 }
 
-function isStaffEmail(email) {
+function isEmployeeEmail(email) {
   const e = (email || "").toLowerCase();
-  // evita contar aluno duas vezes
   return e.endsWith("@ifsc.edu.br") && !e.endsWith("@aluno.ifsc.edu.br");
 }
+
+// =============================
+// DB: students
+// =============================
 
 const db = {
   // Retorna carteira do usuário logado (ou null)
@@ -47,7 +52,7 @@ const db = {
     const userAuth = auth.currentUser;
     if (!userAuth) throw new Error("Não autenticado");
 
-    // vamos usar o próprio uid como ID do doc
+    // doc ID = uid
     const docRef = studentsCollection.doc(userAuth.uid);
     const existing = await docRef.get();
 
@@ -63,7 +68,7 @@ const db = {
       email: userAuth.email || "",
       responsavelNome: responsavelNome || "",
       responsavelTelefone: responsavelTelefone || "",
-      role: "student",
+      role: "student", // mesmo para servidor testando
       responsavelOk: !!responsavelOk,
       saidaAutorizada: !!saidaAutorizada,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -73,13 +78,11 @@ const db = {
       baseData.status = "pending";
       baseData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
     } else {
-      // mantém status anterior se já existir
       const current = existing.data();
       if (current && current.status) {
         baseData.status = current.status;
       }
       if (current && current.fotoDataUrl && !fotoDataUrl) {
-        // mantém foto antiga se não mandou nova
         baseData.fotoDataUrl = current.fotoDataUrl;
       }
     }
@@ -142,6 +145,37 @@ const db = {
     });
 
     return arr;
+  }
+};
+
+// =============================
+// DB: roles (admins)
+// =============================
+
+const rolesDb = {
+  async listAdmins() {
+    const snapshot = await rolesCollection.where("role", "==", "admin").get();
+    return snapshot.docs.map((doc) => ({
+      email: doc.id,
+      ...doc.data()
+    }));
+  },
+
+  async addAdmin(email) {
+    const clean = (email || "").toLowerCase();
+    if (!clean) throw new Error("Email vazio");
+    await rolesCollection.doc(clean).set(
+      {
+        role: "admin",
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      },
+      { merge: true }
+    );
+  },
+
+  async removeAdmin(email) {
+    const clean = (email || "").toLowerCase();
+    await rolesCollection.doc(clean).delete();
   }
 };
 
@@ -224,15 +258,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logout-btn");
   const adminLogoutBtn = document.getElementById("admin-logout-btn");
 
-  // selects curso/turma para fazer o filtro
+  // selects curso/turma para filtro
   const reqCursoSelect = document.getElementById("req-curso");
   const reqTurmaSelect = document.getElementById("req-turma");
 
   // elementos Admin (abas e filtros)
   const adminTabsPendingBtn = document.getElementById("admin-tab-pendentes");
   const adminTabsActiveBtn = document.getElementById("admin-tab-ativos");
+  const adminTabsRolesBtn = document.getElementById("admin-tab-roles");
+
   const adminPendentesArea = document.getElementById("admin-pendentes-area");
   const adminAtivosArea = document.getElementById("admin-ativos-area");
+  const adminRolesArea = document.getElementById("admin-roles-area");
 
   const adminTableBody = document.getElementById("admin-table-body");
   const adminAtivosBody = document.getElementById("admin-ativos-body");
@@ -240,8 +277,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const adminFilterCurso = document.getElementById("admin-filter-curso");
   const adminFilterTurma = document.getElementById("admin-filter-turma");
 
+  const adminRolesForm = document.getElementById("admin-roles-form");
+  const adminRoleLoginInput = document.getElementById("admin-role-login");
+  const adminRolesTableBody = document.getElementById("admin-roles-body");
+
   let currentStudentCard = null;
   let adminApprovedList = [];
+  let currentUserIsAdmin = false;
 
   // garante que só UMA tela aparece por vez
   function showScreen(screen) {
@@ -329,6 +371,29 @@ document.addEventListener("DOMContentLoaded", () => {
         statusMsg.textContent = "Status da carteira não definido.";
       }
     }
+  }
+
+  // =============================
+  // Painel Admin - gestão de abas
+  // =============================
+
+  function setAdminTab(tabName) {
+    const configs = [
+      { name: "pendentes", btn: adminTabsPendingBtn, area: adminPendentesArea },
+      { name: "ativos", btn: adminTabsActiveBtn, area: adminAtivosArea },
+      { name: "roles", btn: adminTabsRolesBtn, area: adminRolesArea }
+    ];
+
+    configs.forEach(({ name, btn, area }) => {
+      if (!btn || !area) return;
+      if (name === tabName) {
+        btn.classList.add("active");
+        area.classList.remove("hidden");
+      } else {
+        btn.classList.remove("active");
+        area.classList.add("hidden");
+      }
+    });
   }
 
   // =============================
@@ -461,6 +526,89 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =============================
+  // Painel Admin - Administradores
+  // =============================
+
+  async function renderAdminRolesPanel() {
+    if (!adminRolesTableBody) return;
+    adminRolesTableBody.innerHTML = "";
+
+    if (!currentUserIsAdmin) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 3;
+      td.textContent = "Apenas administradores podem visualizar esta área.";
+      tr.appendChild(td);
+      adminRolesTableBody.appendChild(tr);
+      return;
+    }
+
+    let admins = await rolesDb.listAdmins();
+
+    // garante Thiago e Nauber na lista, mesmo se não houver doc
+    const fixedAdmins = [
+      "thiago.paes@ifsc.edu.br",
+      "nauber.gavski@ifsc.edu.br",
+      "miguel.zarth@ifsc.edu.br",
+      "felix.medina@ifsc.edu.br"
+    ];
+
+    fixedAdmins.forEach((email) => {
+      if (!admins.some((a) => a.email === email)) {
+        admins.push({ email, role: "admin", fromBootstrap: true });
+      }
+    });
+
+    admins.sort((a, b) => (a.email || "").localeCompare(b.email || ""));
+
+    if (admins.length === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 3;
+      td.textContent = "Nenhum administrador configurado.";
+      tr.appendChild(td);
+      adminRolesTableBody.appendChild(tr);
+      return;
+    }
+
+    admins.forEach((adm) => {
+      const tr = document.createElement("tr");
+      const label = adm.fromBootstrap ? " (fixo)" : "";
+      tr.innerHTML = `
+        <td>${adm.email}</td>
+        <td>${adm.role || "admin"}${label}</td>
+        <td>
+          ${
+            adm.fromBootstrap
+              ? "<span style='font-size:0.8rem;color:#777'>Não removível pelo app</span>"
+              : `<button class="remove-admin-btn" data-email="${adm.email}">Remover</button>`
+          }
+        </td>
+      `;
+      adminRolesTableBody.appendChild(tr);
+    });
+
+    adminRolesTableBody
+      .querySelectorAll(".remove-admin-btn")
+      .forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const email = btn.getAttribute("data-email");
+          const ok = confirm(
+            `Remover ${email} da lista de administradores?`
+          );
+          if (!ok) return;
+          try {
+            await rolesDb.removeAdmin(email);
+            await renderAdminRolesPanel();
+          } catch (err) {
+            console.error("Erro ao remover admin:", err);
+            alert("Não foi possível remover. Verifique suas permissões.");
+          }
+        });
+      });
+  }
+
+  // =============================
   // Filtro de turmas por curso (form de request)
   // =============================
 
@@ -517,29 +665,66 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =============================
+  // Descobrir se o usuário é admin (via roles + fallback Thiago/Nauber)
+  // =============================
+
+  async function determineAdminFlag(email, isEmployee) {
+    currentUserIsAdmin = false;
+    if (!email || !isEmployee) return;
+
+    const lower = email.toLowerCase();
+
+    // fallback fixo
+    if (
+      lower === "thiago.paes@ifsc.edu.br" ||
+      lower === "nauber.gavski@ifsc.edu.br"
+    ) {
+      currentUserIsAdmin = true;
+    }
+
+    try {
+      const doc = await rolesCollection.doc(lower).get();
+      if (doc.exists && doc.data().role === "admin") {
+        currentUserIsAdmin = true;
+      }
+    } catch (err) {
+      console.error("Erro ao verificar roles:", err);
+    }
+  }
+
+  // =============================
   // Auth state listener
   // =============================
 
   auth.onAuthStateChanged(async (user) => {
     if (!user) {
       currentStudentCard = null;
+      currentUserIsAdmin = false;
+
       if (loginArea) loginArea.classList.remove("hidden");
       if (homeArea) homeArea.classList.add("hidden");
+
+      if (homeAdminBtn) homeAdminBtn.classList.add("hidden");
+      if (adminTabsRolesBtn) adminTabsRolesBtn.classList.add("hidden");
+      if (adminRolesArea) adminRolesArea.classList.add("hidden");
+
       showScreen(loginScreen);
       return;
     }
 
     const email = (user.email || "").toLowerCase();
     const aluno = isStudentEmail(email);
-    const staff = isStaffEmail(email);
+    const employee = isEmployeeEmail(email);
 
-    if (!aluno && !staff) {
+    if (!aluno && !employee) {
       alert(
         "Apenas contas institucionais (@aluno.ifsc.edu.br ou @ifsc.edu.br) podem acessar."
       );
       await auth.signOut();
       return;
     }
+
+    await determineAdminFlag(email, employee);
 
     if (loginArea) loginArea.classList.add("hidden");
     if (homeArea) homeArea.classList.remove("hidden");
@@ -557,7 +742,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (currentStudentCard && currentStudentCard.status === "approved") {
         homeCardBtn.disabled = false;
         homeCardMsg.textContent = "";
-      } else if (currentStudentCard && currentStudentCard.status === "pending") {
+      } else if (
+        currentStudentCard &&
+        currentStudentCard.status === "pending"
+      ) {
         homeCardBtn.disabled = false;
         homeCardMsg.textContent =
           "Seu pedido está em análise. A carteirinha exibirá o status PENDENTE até a aprovação.";
@@ -569,10 +757,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (homeAdminBtn) {
-      if (staff) {
+      if (currentUserIsAdmin) {
         homeAdminBtn.classList.remove("hidden");
       } else {
         homeAdminBtn.classList.add("hidden");
+      }
+    }
+
+    if (adminTabsRolesBtn && adminRolesArea) {
+      if (currentUserIsAdmin) {
+        adminTabsRolesBtn.classList.remove("hidden");
+      } else {
+        adminTabsRolesBtn.classList.add("hidden");
+        adminRolesArea.classList.add("hidden");
       }
     }
 
@@ -625,16 +822,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (homeAdminBtn) {
     homeAdminBtn.addEventListener("click", async () => {
-      // por padrão abre na aba "Pendentes"
-      if (adminTabsPendingBtn && adminTabsActiveBtn) {
-        adminTabsPendingBtn.classList.add("active");
-        adminTabsActiveBtn.classList.remove("active");
+      if (!currentUserIsAdmin) {
+        alert("Você não tem permissão para acessar o painel administrativo.");
+        return;
       }
-      if (adminPendentesArea && adminAtivosArea) {
-        adminPendentesArea.classList.remove("hidden");
-        adminAtivosArea.classList.add("hidden");
-      }
-
+      setAdminTab("pendentes");
       await renderAdminPendingPanel();
       showScreen(adminScreen);
     });
@@ -648,21 +840,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (adminTabsPendingBtn) {
     adminTabsPendingBtn.addEventListener("click", async () => {
-      adminTabsPendingBtn.classList.add("active");
-      if (adminTabsActiveBtn) adminTabsActiveBtn.classList.remove("active");
-      if (adminPendentesArea) adminPendentesArea.classList.remove("hidden");
-      if (adminAtivosArea) adminAtivosArea.classList.add("hidden");
+      setAdminTab("pendentes");
       await renderAdminPendingPanel();
     });
   }
 
   if (adminTabsActiveBtn) {
     adminTabsActiveBtn.addEventListener("click", async () => {
-      adminTabsActiveBtn.classList.add("active");
-      if (adminTabsPendingBtn) adminTabsPendingBtn.classList.remove("active");
-      if (adminPendentesArea) adminPendentesArea.classList.add("hidden");
-      if (adminAtivosArea) adminAtivosArea.classList.remove("hidden");
+      setAdminTab("ativos");
       await loadAdminApprovedAndRender();
+    });
+  }
+
+  if (adminTabsRolesBtn) {
+    adminTabsRolesBtn.addEventListener("click", async () => {
+      setAdminTab("roles");
+      await renderAdminRolesPanel();
     });
   }
 
@@ -684,6 +877,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  if (adminRolesForm && adminRoleLoginInput) {
+    adminRolesForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentUserIsAdmin) {
+        alert("Apenas administradores podem alterar esta lista.");
+        return;
+      }
+
+      let login = adminRoleLoginInput.value.trim().toLowerCase();
+      if (!login) {
+        alert("Informe o login do servidor (ex: nome.sobrenome).");
+        return;
+      }
+
+      if (!login.includes("@")) {
+        login = `${login}@ifsc.edu.br`;
+      }
+
+      try {
+        await rolesDb.addAdmin(login);
+        adminRoleLoginInput.value = "";
+        await renderAdminRolesPanel();
+      } catch (err) {
+        console.error("Erro ao adicionar admin:", err);
+        alert("Não foi possível adicionar. Verifique suas permissões.");
+      }
+    });
+  }
+
   if (backToLoginBtn) {
     backToLoginBtn.addEventListener("click", () => {
       showScreen(loginScreen);
@@ -699,7 +921,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const curso = document.getElementById("req-curso")?.value;
       const turma = document.getElementById("req-turma")?.value;
       const dataNasc = document.getElementById("req-data-nasc")?.value;
-      const respNome = document.getElementById("req-resp-nome")?.value.trim();
+      const respNome = document
+        .getElementById("req-resp-nome")
+        ?.value.trim();
       const respTel = document.getElementById("req-resp-tel")?.value.trim();
       const respOk = document.getElementById("req-resp-ok")?.checked;
       const saidaAutorizada =
