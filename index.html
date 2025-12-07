@@ -471,7 +471,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <!-- App Check compat (reCAPTCHA Enterprise) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check-compat.js"></script>
 
   <script>
@@ -486,22 +485,12 @@
 
     firebase.initializeApp(firebaseConfig);
 
-    // === APP CHECK: ativa só fora do localhost ===
-    (function() {
-      const isLocalhost =
-        location.hostname === "localhost" ||
-        location.hostname === "127.0.0.1";
-
-      if (!isLocalhost) {
-        const appCheck = firebase.appCheck();
-        appCheck.activate(
-          "6Lc5cCMsAAAAAE8vFknf7hyu9XBz21QNxsk-rxap",
-          true // auto-refresh
-        );
-      } else {
-        console.warn("[AppCheck] Não ativado em localhost (modo dev).");
-      }
-    })();
+    // App Check (reCAPTCHA v3 ou Enterprise, o que você configurou no console)
+    const appCheck = firebase.appCheck();
+    appCheck.activate(
+      "6Lc5cCMsAAAAAE8vFknf7hyu9XBz21QNxsk-rxap", // SITE KEY do App Check
+      true  // auto refresh
+    );
 
     // Firestore e Auth globais para app.js
     const firestore = firebase.firestore();
@@ -515,6 +504,5 @@
 
   <!-- Seu app -->
   <script src="app.js"></script>
-
 </body>
 </html>
