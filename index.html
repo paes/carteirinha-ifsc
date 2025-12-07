@@ -467,11 +467,10 @@
 
   </main>
 
-    <!-- Firebase (SDK compat) -->
+  <!-- Firebase (SDK compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check-compat.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -484,13 +483,6 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-
-    // App Check (reCAPTCHA v3 ou Enterprise, o que você configurou no console)
-    const appCheck = firebase.appCheck();
-    appCheck.activate(
-      "6Lc5cCMsAAAAAE8vFknf7hyu9XBz21QNxsk-rxap", // SITE KEY do App Check
-      true  // auto refresh
-    );
 
     // Firestore e Auth globais para app.js
     const firestore = firebase.firestore();
