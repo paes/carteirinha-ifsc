@@ -3,7 +3,7 @@
 // =============================
 
 const studentsCollection = firestore.collection("students");
-const rolesCollection = firestore.collection("roles");
+const adminsCollection = firestore.collection("admins");
 
 // helpers de domínio
 function isStudentEmail(email) {
@@ -149,12 +149,13 @@ const db = {
 };
 
 // =============================
-// DB: roles (admins)
+// DB: admins (antes "roles")
 // =============================
 
 const rolesDb = {
   async listAdmins() {
-    const snapshot = await rolesCollection.where("role", "==", "admin").get();
+    // query → exige "list" nas rules (permitido só pra admin)
+    const snapshot = await adminsCollection.where("role", "==", "admin").get();
     return snapshot.docs.map((doc) => ({
       email: doc.id,
       ...doc.data()
@@ -164,7 +165,7 @@ const rolesDb = {
   async addAdmin(email) {
     const clean = (email || "").toLowerCase();
     if (!clean) throw new Error("Email vazio");
-    await rolesCollection.doc(clean).set(
+    await adminsCollection.doc(clean).set(
       {
         role: "admin",
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -175,7 +176,7 @@ const rolesDb = {
 
   async removeAdmin(email) {
     const clean = (email || "").toLowerCase();
-    await rolesCollection.doc(clean).delete();
+    await adminsCollection.doc(clean).delete();
   }
 };
 
@@ -493,9 +494,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${u.responsavelNome || ""}</td>
         <td>${formatPhone(u.responsavelTelefone || "")}</td>
         <td>
-          <button class="deactivate-btn" data-id="${u.id}">
-            Desativar
-          </button>
+          <button class="deactivate-btn" data-id="${u.id}">Desativar</button>
         </td>
       `;
       adminAtivosBody.appendChild(tr);
@@ -545,12 +544,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let admins = await rolesDb.listAdmins();
 
-    // garante Thiago e Nauber na lista, mesmo se não houver doc
+    // garante VIPs na lista, mesmo se não houver doc
     const fixedAdmins = [
       "thiago.paes@ifsc.edu.br",
       "nauber.gavski@ifsc.edu.br",
       "miguel.zarth@ifsc.edu.br",
-      "felix.medina@ifsc.edu.br"
+      "felix.medina@ifsc.edu.br",
+      "coord.pedagogica.gpb@ifsc.edu.br"
     ];
 
     fixedAdmins.forEach((email) => {
@@ -665,7 +665,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =============================
-  // Descobrir se o usuário é admin (via roles + fallback Thiago/Nauber)
+  // Descobrir se o usuário é admin (via admins + VIPs seed)
   // =============================
 
   async function determineAdminFlag(email, isEmployee) {
@@ -674,16 +674,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const lower = email.toLowerCase();
 
-    // fallback fixo
-    if (
-      lower === "thiago.paes@ifsc.edu.br" ||
-      lower === "nauber.gavski@ifsc.edu.br"
-    ) {
+    // mesma lista de VIPs das rules (isBootstrapAdmin)
+    const bootstrapAdmins = [
+      "thiago.paes@ifsc.edu.br",
+      "miguel.zarth@ifsc.edu.br",
+      "felix.medina@ifsc.edu.br",
+      "coord.pedagogica.gpb@ifsc.edu.br",
+      "nauber.gavski@ifsc.edu.br"
+    ];
+
+    // fallback imediato
+    if (bootstrapAdmins.includes(lower)) {
       currentUserIsAdmin = true;
     }
 
+    // checa doc /admins/{email} – aqui é um "get" (permitido para qualquer logado nas rules)
     try {
-      const doc = await rolesCollection.doc(lower).get();
+      const doc = await adminsCollection.doc(lower).get();
       if (doc.exists && doc.data().role === "admin") {
         currentUserIsAdmin = true;
       }
