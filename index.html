@@ -321,13 +321,13 @@
                 </div>
               </div>
 
-              <!-- SITUAÇÃO em linha cheia (mantido só pro texto, se quiser) -->
+              <!-- SITUAÇÃO em linha cheia -->
               <div class="card-field full status-field">
                 <span class="field-label">SITUAÇÃO / SAÍDA ANTECIPADA</span>
                 <span class="field-value" id="card-status-msg"></span>
               </div>
 
-              <!-- Observações logo em seguida -->
+              <!-- Observações -->
               <div class="card-footer">
                 <span class="footer-title">Observações</span>
                 <span class="footer-text">
@@ -367,6 +367,13 @@
           class="admin-tab-button"
         >
           Carteiras ativas
+        </button>
+        <button
+          id="admin-tab-rejeitados"
+          type="button"
+          class="admin-tab-button"
+        >
+          Pedidos rejeitados
         </button>
         <button
           id="admin-tab-roles"
@@ -465,6 +472,32 @@
               </tr>
             </thead>
             <tbody id="admin-ativos-body">
+              <!-- preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Área: Pedidos rejeitados -->
+      <div id="admin-rejeitados-area" class="admin-section hidden">
+        <p class="subtitle">
+          Abaixo estão os pedidos de carteira que foram rejeitados/desativados.
+        </p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Matrícula</th>
+                <th>Curso</th>
+                <th>Turma</th>
+                <th>Responsável</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="admin-rejeitados-body">
               <!-- preenchido via JS -->
             </tbody>
           </table>

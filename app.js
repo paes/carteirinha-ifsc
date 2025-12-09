@@ -145,16 +145,35 @@ const db = {
     });
 
     return arr;
+  },
+
+  // Lista pedidos rejeitados / desativados
+  async listRejectedStudents() {
+    const snapshot = await studentsCollection
+      .where("status", "==", "rejected")
+      .get();
+
+    const arr = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    arr.sort((a, b) => {
+      const nomeA = (a.nome || "").toLowerCase();
+      const nomeB = (b.nome || "").toLowerCase();
+      return nomeA.localeCompare(nomeB);
+    });
+
+    return arr;
   }
 };
 
 // =============================
-// DB: admins (antes "roles")
+// DB: admins
 // =============================
 
 const rolesDb = {
   async listAdmins() {
-    // query → exige "list" nas rules (permitido só pra admin)
     const snapshot = await adminsCollection.where("role", "==", "admin").get();
     return snapshot.docs.map((doc) => ({
       email: doc.id,
@@ -266,14 +285,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // elementos Admin (abas e filtros)
   const adminTabsPendingBtn = document.getElementById("admin-tab-pendentes");
   const adminTabsActiveBtn = document.getElementById("admin-tab-ativos");
+  const adminTabsRejectedBtn = document.getElementById("admin-tab-rejeitados");
   const adminTabsRolesBtn = document.getElementById("admin-tab-roles");
 
   const adminPendentesArea = document.getElementById("admin-pendentes-area");
   const adminAtivosArea = document.getElementById("admin-ativos-area");
+  const adminRejeitadosArea = document.getElementById("admin-rejeitados-area");
   const adminRolesArea = document.getElementById("admin-roles-area");
 
   const adminTableBody = document.getElementById("admin-table-body");
   const adminAtivosBody = document.getElementById("admin-ativos-body");
+  const adminRejeitadosBody = document.getElementById("admin-rejeitados-body");
   const adminSearchInput = document.getElementById("admin-search");
   const adminFilterCurso = document.getElementById("admin-filter-curso");
   const adminFilterTurma = document.getElementById("admin-filter-turma");
@@ -302,6 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const cardName = document.getElementById("card-name");
     const cardRa = document.getElementById("card-ra");
     const cardCourse = document.getElementById("card-course");
+    the_cardTurma = document.getElementById("card-turma");
     const cardTurma = document.getElementById("card-turma");
     const cardIdade = document.getElementById("card-idade");
     const cardRespNome = document.getElementById("card-resp-nome");
@@ -351,6 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
           cardElement.classList.remove("card-pending");
         }
       } else {
+        // pendente OU rejeitada → sempre mostra PENDENTE visualmente
         cardStamp.textContent = "PENDENTE";
         cardStamp.classList.add("pending");
         if (cardElement) {
@@ -361,13 +385,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (statusMsg) {
       if (data.status === "approved") {
-        statusMsg.textContent = "Carteira ativa. Saída antecipada autorizada.";
+        statusMsg.textContent =
+          "Carteira ativa. Saída antecipada autorizada.";
       } else if (data.status === "pending") {
         statusMsg.textContent =
-          "Pedido em análise. Saída antecipada ainda pendente de autorização.";
+          "Pedido em análise. A carteira aparece com status PENDENTE até a aprovação.";
       } else if (data.status === "rejected") {
         statusMsg.textContent =
-          "Pedido indeferido ou carteira desativada. Saída antecipada não autorizada. Procure a coordenação.";
+          "Pedido indeferido ou carteira desativada. A carteira aparece como PENDENTE e não autoriza saída.";
       } else {
         statusMsg.textContent = "Status da carteira não definido.";
       }
@@ -382,6 +407,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const configs = [
       { name: "pendentes", btn: adminTabsPendingBtn, area: adminPendentesArea },
       { name: "ativos", btn: adminTabsActiveBtn, area: adminAtivosArea },
+      { name: "rejeitados", btn: adminTabsRejectedBtn, area: adminRejeitadosArea },
       { name: "roles", btn: adminTabsRolesBtn, area: adminRolesArea }
     ];
 
@@ -525,6 +551,63 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =============================
+  // Painel Admin - Rejeitados
+  // =============================
+
+  async function renderAdminRejectedPanel() {
+    if (!adminRejeitadosBody) return;
+    adminRejeitadosBody.innerHTML = "";
+
+    const rejeitados = await db.listRejectedStudents();
+
+    if (rejeitados.length === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 7;
+      td.textContent = "Nenhum pedido rejeitado/desativado.";
+      tr.appendChild(td);
+      adminRejeitadosBody.appendChild(tr);
+      return;
+    }
+
+    rejeitados.forEach((u) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${u.nome || ""}</td>
+        <td>${u.ra || ""}</td>
+        <td>${u.curso || ""}</td>
+        <td>${u.turma || ""}</td>
+        <td>${u.responsavelNome || ""}</td>
+        <td>${formatPhone(u.responsavelTelefone || "")}</td>
+        <td>
+          <button class="reapprove-btn" data-id="${u.id}">
+            Aprovar novamente
+          </button>
+        </td>
+      `;
+      adminRejeitadosBody.appendChild(tr);
+    });
+
+    adminRejeitadosBody.querySelectorAll(".reapprove-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        const ok = confirm(
+          "Atenção: este discente teve sua carteirinha recusada anteriormente. Você tem certeza que deseja alterar o status deste pedido para APROVADO?"
+        );
+        if (!ok) return;
+
+        try {
+          await db.updateStudentStatus(id, "approved");
+          await renderAdminRejectedPanel();
+        } catch (err) {
+          console.error("Erro ao reaprovar carteira:", err);
+          alert("Não foi possível aprovar novamente. Tente novamente.");
+        }
+      });
+    });
+  }
+
+  // =============================
   // Painel Admin - Administradores
   // =============================
 
@@ -544,7 +627,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let admins = await rolesDb.listAdmins();
 
-    // garante VIPs na lista, mesmo se não houver doc
     const fixedAdmins = [
       "thiago.paes@ifsc.edu.br",
       "nauber.gavski@ifsc.edu.br",
@@ -665,7 +747,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =============================
-  // Descobrir se o usuário é admin (via admins + VIPs seed)
+  // Descobrir se o usuário é admin
   // =============================
 
   async function determineAdminFlag(email, isEmployee) {
@@ -674,7 +756,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const lower = email.toLowerCase();
 
-    // mesma lista de VIPs das rules (isBootstrapAdmin)
     const bootstrapAdmins = [
       "thiago.paes@ifsc.edu.br",
       "miguel.zarth@ifsc.edu.br",
@@ -683,12 +764,10 @@ document.addEventListener("DOMContentLoaded", () => {
       "nauber.gavski@ifsc.edu.br"
     ];
 
-    // fallback imediato
     if (bootstrapAdmins.includes(lower)) {
       currentUserIsAdmin = true;
     }
 
-    // checa doc /admins/{email} – aqui é um "get" (permitido para qualquer logado nas rules)
     try {
       const doc = await adminsCollection.doc(lower).get();
       if (doc.exists && doc.data().role === "admin") {
@@ -743,19 +822,25 @@ document.addEventListener("DOMContentLoaded", () => {
       userEmailSpan.textContent = user.email || "";
     }
 
+    // carrega carteira mais recente do Firestore
     currentStudentCard = await db.getCurrentStudentCard();
 
+    // Habilita / desabilita botão "Ver minha carteira"
     if (homeCardBtn && homeCardMsg) {
-      if (currentStudentCard && currentStudentCard.status === "approved") {
+      if (currentStudentCard) {
         homeCardBtn.disabled = false;
-        homeCardMsg.textContent = "";
-      } else if (
-        currentStudentCard &&
-        currentStudentCard.status === "pending"
-      ) {
-        homeCardBtn.disabled = false;
-        homeCardMsg.textContent =
-          "Seu pedido está em análise. A carteirinha exibirá o status PENDENTE até a aprovação.";
+
+        if (currentStudentCard.status === "approved") {
+          homeCardMsg.textContent = "";
+        } else if (currentStudentCard.status === "pending") {
+          homeCardMsg.textContent =
+            "Seu pedido está em análise. Ao abrir, a carteirinha será exibida com status PENDENTE.";
+        } else if (currentStudentCard.status === "rejected") {
+          homeCardMsg.textContent =
+            "Sua carteira está indeferida/desativada. Ao abrir, a carteirinha aparece como PENDENTE e não autoriza saída.";
+        } else {
+          homeCardMsg.textContent = "";
+        }
       } else {
         homeCardBtn.disabled = true;
         homeCardMsg.textContent =
@@ -804,13 +889,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (homeCardBtn) {
     homeCardBtn.addEventListener("click", async () => {
-      if (!currentStudentCard) {
-        alert("Você ainda não possui carteira cadastrada.");
-        return;
+      try {
+        // SEMPRE busca a versão mais recente da carteira
+        const latest = await db.getCurrentStudentCard();
+        currentStudentCard = latest;
+
+        if (!currentStudentCard) {
+          alert(
+            "Você ainda não possui carteira cadastrada. Clique em “Solicitar / atualizar carteira”."
+          );
+          return;
+        }
+
+        renderStudentCard(currentStudentCard);
+        showScreen(cardScreen);
+      } catch (err) {
+        console.error("Erro ao carregar carteira:", err);
+        alert("Não foi possível carregar a carteirinha. Tente novamente.");
       }
-      currentStudentCard = await db.getCurrentStudentCard();
-      renderStudentCard(currentStudentCard);
-      showScreen(cardScreen);
     });
   }
 
@@ -856,6 +952,13 @@ document.addEventListener("DOMContentLoaded", () => {
     adminTabsActiveBtn.addEventListener("click", async () => {
       setAdminTab("ativos");
       await loadAdminApprovedAndRender();
+    });
+  }
+
+  if (adminTabsRejectedBtn) {
+    adminTabsRejectedBtn.addEventListener("click", async () => {
+      setAdminTab("rejeitados");
+      await renderAdminRejectedPanel();
     });
   }
 
@@ -994,18 +1097,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         currentStudentCard = saved;
 
+        // depois de enviar/atualizar, o botão "Ver minha carteira"
+        // fica sempre habilitado enquanto houver uma carteira,
+        // independente de estar aprovada ou não
         if (homeCardBtn && homeCardMsg) {
+          homeCardBtn.disabled = false;
+
           if (saved.status === "approved") {
-            homeCardBtn.disabled = false;
             homeCardMsg.textContent = "";
           } else if (saved.status === "pending") {
-            homeCardBtn.disabled = false;
             homeCardMsg.textContent =
-              "Seu pedido está em análise. A carteirinha exibirá o status PENDENTE até a aprovação.";
+              "Seu pedido está em análise. Ao abrir, a carteirinha será exibida com status PENDENTE.";
+          } else if (saved.status === "rejected") {
+            homeCardMsg.textContent =
+              "Sua carteira está indeferida/desativada. Ao abrir, a carteirinha aparece como PENDENTE e não autoriza saída.";
           } else {
-            homeCardBtn.disabled = true;
-            homeCardMsg.textContent =
-              "Você ainda não possui carteira ativa. Aguarde a análise.";
+            homeCardMsg.textContent = "";
           }
         }
 
