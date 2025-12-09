@@ -1,3 +1,13 @@
+
+// =============================
+// Versão
+// =============================
+
+
+const APP_VERSION = "1.1.0";
+
+
+
 // =============================
 // Firestore / coleções
 // =============================
@@ -255,6 +265,9 @@ function readFileAsDataURL(file) {
 // =============================
 
 document.addEventListener("DOMContentLoaded", () => {
+
+  const appVersionLabel = document.getElementById("app-version");
+
   const loginScreen = document.getElementById("login-screen");
   const requestScreen = document.getElementById("request-screen");
   const cardScreen = document.getElementById("card-screen");
@@ -269,6 +282,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const homeAdminBtn = document.getElementById("home-admin-btn");
   const homeLogoutBtn = document.getElementById("home-logout-btn");
   const homeCardMsg = document.getElementById("home-card-msg");
+
+  // adicionando para ver como aluno
+  
+  if (appVersionLabel) {
+    appVersionLabel.textContent = `v${APP_VERSION}`;
+  // se quiser algo mais completo:
+  // appVersionLabel.textContent = `v${APP_VERSION} · atualizada em 09/12/2025`;
+}
+
+
 
   // novos controles para "ver como aluno"
   const homeViewAsStudentBtn = document.getElementById(

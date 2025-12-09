@@ -798,3 +798,17 @@ button.deactivate-btn {
   font-size: 0.85rem;
   color: #555;
 }
+
+.app-version {
+  margin-top: 0.25rem;
+  font-size: 0.7rem;
+  color: #9a9a9a;
+  text-align: center;
+  opacity: 0.85;
+}
+
+.admin-student-banner {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #666;
+}
