@@ -4,7 +4,7 @@
 // =============================
 
 
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.1.1";
 
 
 
@@ -719,7 +719,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${formatPhone(u.responsavelTelefone || "")}</td>
         <td>
           <button class="reapprove-btn" data-id="${u.id}">
-            Aprovar novamente
+            Tornar ativa
           </button>
         </td>
       `;
