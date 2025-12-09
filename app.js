@@ -270,6 +270,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const homeLogoutBtn = document.getElementById("home-logout-btn");
   const homeCardMsg = document.getElementById("home-card-msg");
 
+  // novos controles para "ver como aluno"
+  const homeViewAsStudentBtn = document.getElementById(
+    "home-view-as-student-btn"
+  );
+  const homeBackAdminRoleBtn = document.getElementById(
+    "home-back-admin-role-btn"
+  );
+  const adminStudentBanner = document.getElementById("admin-student-banner");
+
   const userNameSpan = document.getElementById("user-name");
   const userEmailSpan = document.getElementById("user-email");
 
@@ -307,6 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentStudentCard = null;
   let adminApprovedList = [];
   let currentUserIsAdmin = false;
+  let isAdminStudentView = false; // admin está “vendo como aluno”?
 
   // garante que só UMA tela aparece por vez
   function showScreen(screen) {
@@ -324,7 +334,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const cardName = document.getElementById("card-name");
     const cardRa = document.getElementById("card-ra");
     const cardCourse = document.getElementById("card-course");
-    the_cardTurma = document.getElementById("card-turma");
     const cardTurma = document.getElementById("card-turma");
     const cardIdade = document.getElementById("card-idade");
     const cardRespNome = document.getElementById("card-resp-nome");
@@ -400,6 +409,108 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =============================
+  // Atualização da home conforme papel / modo
+  // =============================
+
+  function updateHomeCardControls(showNoCardMessage) {
+    if (!(homeCardBtn && homeCardMsg)) return;
+
+    if (!currentStudentCard) {
+      homeCardBtn.disabled = true;
+      if (showNoCardMessage) {
+        homeCardMsg.textContent =
+          "Você ainda não possui carteira cadastrada. Clique em “Solicitar / atualizar carteira”.";
+      } else {
+        homeCardMsg.textContent = "";
+      }
+      return;
+    }
+
+    homeCardBtn.disabled = false;
+
+    if (currentStudentCard.status === "approved") {
+      homeCardMsg.textContent = "";
+    } else if (currentStudentCard.status === "pending") {
+      homeCardMsg.textContent =
+        "Seu pedido está em análise. Ao abrir, a carteirinha será exibida com status PENDENTE.";
+    } else if (currentStudentCard.status === "rejected") {
+      homeCardMsg.textContent =
+        "Sua carteira está indeferida/desativada. Ao abrir, a carteirinha aparece como PENDENTE e não autoriza saída.";
+    } else {
+      homeCardMsg.textContent = "";
+    }
+  }
+
+  function updateHomeView() {
+    if (!homeArea) return;
+
+    const isAdmin = currentUserIsAdmin;
+
+    // reset banner por padrão
+    if (adminStudentBanner) {
+      adminStudentBanner.classList.add("hidden");
+      adminStudentBanner.textContent = "";
+    }
+
+    if (!isAdmin) {
+      // Usuário NÃO é admin → sempre modo aluno "normal"
+      isAdminStudentView = false;
+
+      if (homeAdminBtn) homeAdminBtn.classList.add("hidden");
+      if (homeViewAsStudentBtn) homeViewAsStudentBtn.classList.add("hidden");
+      if (homeBackAdminRoleBtn) homeBackAdminRoleBtn.classList.add("hidden");
+
+      if (homeCardBtn) homeCardBtn.classList.remove("hidden");
+      if (homeRequestBtn) homeRequestBtn.classList.remove("hidden");
+
+      updateHomeCardControls(true);
+      return;
+    }
+
+    // Usuário É admin
+    if (!isAdminStudentView) {
+      // Modo servidor/admin
+      if (homeAdminBtn) homeAdminBtn.classList.remove("hidden");
+      if (homeViewAsStudentBtn)
+        homeViewAsStudentBtn.classList.remove("hidden");
+      if (homeBackAdminRoleBtn)
+        homeBackAdminRoleBtn.classList.add("hidden");
+
+      if (homeCardBtn) {
+        homeCardBtn.classList.add("hidden");
+        homeCardBtn.disabled = true;
+      }
+      if (homeRequestBtn) {
+        homeRequestBtn.classList.add("hidden");
+      }
+
+      if (homeCardMsg) {
+        homeCardMsg.textContent =
+          "Você está logado como servidor administrador. Use o painel administrativo ou clique em “Ver como aluno (teste)” para experimentar o fluxo do discente.";
+      }
+
+      return;
+    }
+
+    // Admin em modo aluno (teste)
+    if (adminStudentBanner) {
+      adminStudentBanner.textContent =
+        "Você é administrador e está visualizando o app como aluno (modo de teste). Qualquer carteira criada aqui é apenas para testes.";
+      adminStudentBanner.classList.remove("hidden");
+    }
+
+    if (homeAdminBtn) homeAdminBtn.classList.add("hidden");
+    if (homeViewAsStudentBtn) homeViewAsStudentBtn.classList.add("hidden");
+    if (homeBackAdminRoleBtn)
+      homeBackAdminRoleBtn.classList.remove("hidden");
+
+    if (homeCardBtn) homeCardBtn.classList.remove("hidden");
+    if (homeRequestBtn) homeRequestBtn.classList.remove("hidden");
+
+    updateHomeCardControls(true);
+  }
+
+  // =============================
   // Painel Admin - gestão de abas
   // =============================
 
@@ -407,7 +518,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const configs = [
       { name: "pendentes", btn: adminTabsPendingBtn, area: adminPendentesArea },
       { name: "ativos", btn: adminTabsActiveBtn, area: adminAtivosArea },
-      { name: "rejeitados", btn: adminTabsRejectedBtn, area: adminRejeitadosArea },
+      {
+        name: "rejeitados",
+        btn: adminTabsRejectedBtn,
+        area: adminRejeitadosArea
+      },
       { name: "roles", btn: adminTabsRolesBtn, area: adminRolesArea }
     ];
 
@@ -486,7 +601,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const search = (adminSearchInput?.value || "").trim().toLowerCase();
     const curso = adminFilterCurso?.value || "";
-    const turma = adminFilterTurma?.value || "";
+       const turma = adminFilterTurma?.value || "";
 
     const filtered = adminApprovedList.filter((u) => {
       if (curso && u.curso !== curso) return false;
@@ -786,6 +901,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!user) {
       currentStudentCard = null;
       currentUserIsAdmin = false;
+      isAdminStudentView = false;
 
       if (loginArea) loginArea.classList.remove("hidden");
       if (homeArea) homeArea.classList.add("hidden");
@@ -822,39 +938,13 @@ document.addEventListener("DOMContentLoaded", () => {
       userEmailSpan.textContent = user.email || "";
     }
 
+    // por padrão, sempre começa no papel "servidor" se for admin
+    if (currentUserIsAdmin) {
+      isAdminStudentView = false;
+    }
+
     // carrega carteira mais recente do Firestore
     currentStudentCard = await db.getCurrentStudentCard();
-
-    // Habilita / desabilita botão "Ver minha carteira"
-    if (homeCardBtn && homeCardMsg) {
-      if (currentStudentCard) {
-        homeCardBtn.disabled = false;
-
-        if (currentStudentCard.status === "approved") {
-          homeCardMsg.textContent = "";
-        } else if (currentStudentCard.status === "pending") {
-          homeCardMsg.textContent =
-            "Seu pedido está em análise. Ao abrir, a carteirinha será exibida com status PENDENTE.";
-        } else if (currentStudentCard.status === "rejected") {
-          homeCardMsg.textContent =
-            "Sua carteira está indeferida/desativada. Ao abrir, a carteirinha aparece como PENDENTE e não autoriza saída.";
-        } else {
-          homeCardMsg.textContent = "";
-        }
-      } else {
-        homeCardBtn.disabled = true;
-        homeCardMsg.textContent =
-          "Você ainda não possui carteira cadastrada. Clique em “Solicitar / atualizar carteira”.";
-      }
-    }
-
-    if (homeAdminBtn) {
-      if (currentUserIsAdmin) {
-        homeAdminBtn.classList.remove("hidden");
-      } else {
-        homeAdminBtn.classList.add("hidden");
-      }
-    }
 
     if (adminTabsRolesBtn && adminRolesArea) {
       if (currentUserIsAdmin) {
@@ -865,6 +955,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    updateHomeView();
     showScreen(loginScreen);
   });
 
@@ -884,6 +975,22 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Erro no login com Google:", err);
         alert("Não foi possível entrar com o Google. Tente novamente.");
       }
+    });
+  }
+
+  if (homeViewAsStudentBtn) {
+    homeViewAsStudentBtn.addEventListener("click", () => {
+      if (!currentUserIsAdmin) return;
+      isAdminStudentView = true;
+      updateHomeView();
+    });
+  }
+
+  if (homeBackAdminRoleBtn) {
+    homeBackAdminRoleBtn.addEventListener("click", () => {
+      if (!currentUserIsAdmin) return;
+      isAdminStudentView = false;
+      updateHomeView();
     });
   }
 
@@ -1097,25 +1204,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         currentStudentCard = saved;
 
-        // depois de enviar/atualizar, o botão "Ver minha carteira"
-        // fica sempre habilitado enquanto houver uma carteira,
-        // independente de estar aprovada ou não
-        if (homeCardBtn && homeCardMsg) {
-          homeCardBtn.disabled = false;
-
-          if (saved.status === "approved") {
-            homeCardMsg.textContent = "";
-          } else if (saved.status === "pending") {
-            homeCardMsg.textContent =
-              "Seu pedido está em análise. Ao abrir, a carteirinha será exibida com status PENDENTE.";
-          } else if (saved.status === "rejected") {
-            homeCardMsg.textContent =
-              "Sua carteira está indeferida/desativada. Ao abrir, a carteirinha aparece como PENDENTE e não autoriza saída.";
-          } else {
-            homeCardMsg.textContent = "";
-          }
-        }
-
+        updateHomeView();
         renderStudentCard(saved);
         showScreen(cardScreen);
         requestForm.reset();

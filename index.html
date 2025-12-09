@@ -57,7 +57,13 @@
           Logado como <span id="user-email"></span>
         </p>
 
+        <!-- Banner quando admin estiver "vendo como aluno" -->
+        <p id="admin-student-banner" class="small-note admin-banner hidden">
+          <!-- preenchido via JS -->
+        </p>
+
         <div class="home-actions">
+          <!-- Botões do aluno -->
           <button id="home-card-btn" type="button" class="primary" disabled>
             Ver minha carteira
           </button>
@@ -67,8 +73,25 @@
             Solicitar / atualizar carteira
           </button>
 
+          <!-- Botões específicos para admins -->
           <button id="home-admin-btn" type="button" class="hidden">
             Ir para painel administrativo
+          </button>
+
+          <button
+            id="home-view-as-student-btn"
+            type="button"
+            class="secondary hidden"
+          >
+            Ver como aluno (teste)
+          </button>
+
+          <button
+            id="home-back-admin-role-btn"
+            type="button"
+            class="secondary hidden"
+          >
+            Voltar ao papel de servidor
           </button>
 
           <button id="home-logout-btn" type="button" class="link-button">
@@ -321,7 +344,7 @@
                 </div>
               </div>
 
-              <!-- SITUAÇÃO em linha cheia -->
+              <!-- SITUAÇÃO -->
               <div class="card-field full status-field">
                 <span class="field-label">SITUAÇÃO / SAÍDA ANTECIPADA</span>
                 <span class="field-value" id="card-status-msg"></span>
@@ -481,7 +504,7 @@
       <!-- Área: Pedidos rejeitados -->
       <div id="admin-rejeitados-area" class="admin-section hidden">
         <p class="subtitle">
-          Abaixo estão os pedidos de carteira que foram rejeitados/desativados.
+          Pedidos que foram rejeitados ou carteiras desativadas. Use com cuidado a reaprovação.
         </p>
 
         <div class="table-wrapper">
