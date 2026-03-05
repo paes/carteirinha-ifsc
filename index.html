@@ -97,12 +97,12 @@
 
         <label>
           Nome completo do aluno
-          <input type="text" id="req-nome" required />
+          <input type="text" id="req-nome" name="nome" required />
         </label>
 
         <label>
           Curso
-          <select id="req-curso" required>
+          <select id="req-curso" name="curso" required>>
             <option value="">Selecione...</option>
             <option value="Curso Tﾃｩcnico Integrado em Administraﾃｧﾃ｣o">
               Curso Tﾃｩcnico Integrado em Administraﾃｧﾃ｣o
@@ -121,7 +121,7 @@
 
         <label>
           Turma
-          <select id="req-turma" required>
+          <select id="req-turma" name="turma" required>>
             <option value="">Selecione...</option>
             <!-- Informﾃ｡tica -->
             <option value="INF24">INF24</option>
@@ -144,14 +144,14 @@
 
         <label>
           Data de nascimento do aluno
-          <input type="text" id="req-data-nasc" required placeholder="YYYY-MM-DD" />
+          <input type="text" id="req-data-nasc" name="data_nasc" required placeholder="YYYY-MM-DD" />
         </label>
 
         <label>
           E-mail institucional (login@aluno.ifsc.edu.br)
           <input
             type="email"
-            id="req-email"
+            id="req-email" name="email"
             required
             placeholder="login@aluno.ifsc.edu.br"
             readonly
@@ -161,15 +161,15 @@
         </label>
 
         <label>
-          Nome do responsﾃ｡vel
-          <input type="text" id="req-resp-nome" required />
+          Nome do responsﾃｧvel
+          <input type="text" id="req-resp-nome" name="responsavel_nome" required />
         </label>
 
         <label>
-          Telefone do responsﾃ｡vel
+          Telefone do responsﾃｧvel
           <input
             type="tel"
-            id="req-resp-tel"
+            id="req-resp-tel" name="responsavel_telefone"
             required
             placeholder="48999999999"
             inputmode="tel"
@@ -179,7 +179,7 @@
         <label>
           Foto 3x4 (obrigatﾃｳria)
           <small>Formato: JPG, PNG | Tamanho mﾃ｡ximo: 500KB | Dimensﾃｵes: 720x960px</small>
-          <input type="file" id="req-foto" accept="image/jpeg,image/jpg,image/png" required />
+          <input type="file" id="req-foto" name="foto" accept="image/jpeg,image/jpg,image/png" required />
         </label>
 
         <!-- BLOCO DE INFORMAﾃ�髭S SOBRE AUTORIZAﾃ�グ DE SAﾃ好A ANTECIPADA -->
@@ -232,13 +232,13 @@
         </div>
 
         <label class="checkbox-line">
-          <input type="checkbox" id="req-saida-autorizada" />
+          <input type="checkbox" id="req-saida-autorizada" name="saida_autorizada" />
           Li as informaﾃｧﾃｵes sobre a saﾃｭda antecipada e declaro que o responsﾃ｡vel
           jﾃ｡ assinou (ou assinarﾃ｡) o termo no gov.br.
         </label>
 
         <label class="checkbox-line">
-          <input type="checkbox" id="req-resp-ok" />
+          <input type="checkbox" id="req-resp-ok" name="responsavel_ok" />
           Enviar o termo assinado.
         </label>
 
