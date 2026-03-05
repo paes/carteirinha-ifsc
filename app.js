@@ -369,6 +369,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function renderStudentCard(user) {
+    console.log("🎨 Iniciando renderStudentCard com dados:", user);
+    
     const cardName = document.getElementById("card-name");
     const cardRa = document.getElementById("card-ra");
     const cardCourse = document.getElementById("card-course");
@@ -382,6 +384,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 👉 pega o container da carteirinha
     const cardElement = document.querySelector(".card");
+    
+    console.log("📋 Elementos da carteirinha encontrados:", {
+      cardName: !!cardName,
+      cardRa: !!cardRa,
+      cardCourse: !!cardCourse,
+      cardTurma: !!cardTurma,
+      cardIdade: !!cardIdade,
+      cardRespNome: !!cardRespNome,
+      cardRespTel: !!cardRespTel,
+      statusMsg: !!statusMsg,
+      photoPlaceholder: !!photoPlaceholder,
+      cardStamp: !!cardStamp,
+      cardElement: !!cardElement
+    });
 
     if (cardName) cardName.textContent = user.nome || "";
     if (cardRa) cardRa.textContent = user.ra || "";
@@ -796,6 +812,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         
         const email = currentUser.email || "";
+        console.log("🔍 Buscando carteirinha para:", email);
+        
         const snap = await fb.firestore
           .collection("students")
           .where("googleEmail", "==", String(email).toLowerCase())
@@ -806,6 +824,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!snap.empty) {
           studentData = snap.docs[0].data();
           currentStudentCard = studentData; // atualiza cache
+          console.log("✅ Carteirinha encontrada:", studentData);
+        } else {
+          console.log("❌ Nenhuma carteirinha encontrada para:", email);
         }
         
         if (!studentData) {
@@ -813,12 +834,14 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         
+        console.log("🎨 Renderizando carteirinha...");
         await renderStudentCard(studentData);
         startCardTimestampUpdate();
         showScreen(cardScreen);
+        console.log("✅ Carteirinha exibida com sucesso!");
       } catch (err) {
-        console.error(err);
-        alert("Não foi possível abrir a carteirinha.");
+        console.error("❌ Erro ao abrir carteirinha:", err);
+        alert("Não foi possível abrir a carteirinha. Erro: " + err.message);
       }
     });
   }
