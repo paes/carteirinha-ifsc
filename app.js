@@ -992,14 +992,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const ok = confirm("Deseja realmente desativar esta carteira?");
         if (!ok) return;
         try {
-          await fb.firestore.collection("students").doc(ra).update({
+          // Verificar se o documento existe antes de atualizar
+          const docRef = fb.firestore.collection("students").doc(ra);
+          const doc = await docRef.get();
+          
+          if (!doc.exists) {
+            alert("Erro: Este aluno não foi encontrado no sistema.");
+            await loadAdminApprovedAndRender(); // Recarregar a lista
+            return;
+          }
+          
+          await docRef.update({
             status: "rejected",
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
           });
           await loadAdminApprovedAndRender();
         } catch (err) {
           console.error(err);
-          alert("Não foi possível desativar.");
+          alert("Não foi possível desativar. " + err.message);
         }
       });
     });
@@ -1081,11 +1091,21 @@ document.addEventListener("DOMContentLoaded", () => {
         const ok = confirm("Tem certeza que deseja EXCLUIR permanentemente este pedido?\n\nEsta ação não pode ser desfeita!");
         if (!ok) return;
         try {
-          await fb.firestore.collection("students").doc(ra).delete();
+          // Verificar se o documento existe antes de excluir
+          const docRef = fb.firestore.collection("students").doc(ra);
+          const doc = await docRef.get();
+          
+          if (!doc.exists) {
+            alert("Erro: Este aluno não foi encontrado no sistema.");
+            await renderAdminRejectedPanel(); // Recarregar a lista
+            return;
+          }
+          
+          await docRef.delete();
           await renderAdminRejectedPanel();
         } catch (err) {
           console.error(err);
-          alert("Não foi possível excluir.");
+          alert("Não foi possível excluir. " + err.message);
         }
       });
     });
