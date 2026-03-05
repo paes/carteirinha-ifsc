@@ -738,10 +738,14 @@ document.addEventListener("DOMContentLoaded", () => {
         photoBase64: photoBase64 || null,  // Armazenar como Base64 no Firestore
         role: "student",
         status: "pending",
+        // Campos para compatibilidade com regras complexas
+        ownerUid: currentUser.uid,
+        ownerEmail: authEmailLower,
+        ownerName: currentUser.displayName || nome,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
 
-      const ref = fb.firestore.collection("students").doc(ra);
+      const ref = fb.firestore.collection("students").doc(currentUser.uid);
       const existing = await ref.get();
       if (!existing.exists) {
         studentDoc.createdAt = firebase.firestore.FieldValue.serverTimestamp();
@@ -801,12 +805,11 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const snap = await fb.firestore
         .collection("students")
-        .where("googleEmail", "==", String(email).toLowerCase())
-        .limit(1)
+        .doc(user.uid)  // Usar UID em vez de buscar por email
         .get();
 
-      if (!snap.empty) {
-        currentStudentCard = snap.docs[0].data();
+      if (snap.exists) {
+        currentStudentCard = snap.data();
       }
     } catch (err) {
       console.error(err);
@@ -831,13 +834,12 @@ document.addEventListener("DOMContentLoaded", () => {
         
         const snap = await fb.firestore
           .collection("students")
-          .where("googleEmail", "==", String(email).toLowerCase())
-          .limit(1)
+          .doc(currentUser.uid)  // Usar UID em vez de buscar por email
           .get();
         
         let studentData = null;
-        if (!snap.empty) {
-          studentData = snap.docs[0].data();
+        if (snap.exists) {
+          studentData = snap.data();
           currentStudentCard = studentData; // atualiza cache
           console.log("✅ Carteirinha encontrada:", studentData);
         } else {
