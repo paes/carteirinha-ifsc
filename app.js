@@ -854,6 +854,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (currentUser && emailInput) {
         emailInput.value = currentUser.email || "";
       }
+      
+      // Preenche a data de nascimento com 15 anos antes da data atual
+      const dataNascInput = document.getElementById("req-data-nasc");
+      if (dataNascInput) {
+        const dataAtual = new Date();
+        const dataPadrao = new Date(dataAtual.getFullYear() - 15, dataAtual.getMonth(), dataAtual.getDate());
+        const dataFormatada = dataPadrao.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+        dataNascInput.value = dataFormatada;
+      }
+      
       showScreen(requestScreen);
     });
   }
