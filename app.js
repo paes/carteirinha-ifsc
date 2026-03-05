@@ -695,26 +695,31 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      let photoPath = null;
+      let photoBase64 = null;
       if (fotoFile) {
         try {
-          console.log("📷 Tentando fazer upload da foto...");
+          console.log("📷 Processando foto para Firestore...");
           const blob = await compressImageFile(fotoFile, {
             maxWidth: 720,
             maxHeight: 960,
             mimeType: "image/jpeg",
-            quality: 0.84,
-            maxBytes: 900 * 1024  // Aumentado para ~900KB
+            quality: 0.7,  // Reduzir qualidade para caber no Firestore
+            maxBytes: 500 * 1024  // 500KB para não exceder limite do Firestore
           });
-          photoPath = `students/${ra}/photo.jpg`;
-          const ref = fb.storage.ref(photoPath);
-          await ref.put(blob, { contentType: "image/jpeg" });
-          console.log("✅ Foto enviada com sucesso!");
+          
+          // Converter para Base64
+          photoBase64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          
+          console.log("✅ Foto processada com sucesso!");
         } catch (err) {
-          console.error("❌ Erro ao processar/enviar foto:", err);
-          // Continuar sem foto em vez de bloquear
-          alert("Aviso: Não foi possível enviar a foto. O pedido será enviado sem foto.");
-          photoPath = null;
+          console.error("❌ Erro ao processar foto:", err);
+          alert("Aviso: Não foi possível processar a foto. O pedido será enviado sem foto.");
+          photoBase64 = null;
         }
       }
 
@@ -730,7 +735,7 @@ document.addEventListener("DOMContentLoaded", () => {
         responsavelTelefone: respTel,
         responsavelOk: !!respOk,
         saidaAutorizada: !!saidaAutorizada,
-        photoPath: photoPath || null,
+        photoBase64: photoBase64 || null,  // Armazenar como Base64 no Firestore
         role: "student",
         status: "pending",
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -963,13 +968,29 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const doc = await fb.firestore.collection("students").doc(ra).get();
       const data = doc.exists ? doc.data() : null;
-      if (!data || !data.photoPath) {
+      
+      // Verificar se tem foto em Base64 ou no Storage antigo
+      if (!data || (!data.photoBase64 && !data.photoPath)) {
         alert("Aluno não enviou foto.");
         return;
       }
-      const url = await fb.storage.ref(data.photoPath).getDownloadURL();
-      if (photoModalImg) photoModalImg.src = url;
-      if (photoModal) photoModal.classList.remove("hidden");
+      
+      // Usar Base64 se disponível
+      if (data.photoBase64) {
+        if (photoModalImg) photoModalImg.src = data.photoBase64;
+        if (photoModal) photoModal.classList.remove("hidden");
+      } 
+      // Fallback para Storage antigo
+      else if (data.photoPath) {
+        try {
+          const url = await fb.storage.ref(data.photoPath).getDownloadURL();
+          if (photoModalImg) photoModalImg.src = url;
+          if (photoModal) photoModal.classList.remove("hidden");
+        } catch (storageErr) {
+          console.error("Erro ao carregar do Storage:", storageErr);
+          alert("Foto não encontrada no Storage. Tente novamente.");
+        }
+      }
     } catch (err) {
       console.error(err);
       alert("Não foi possível carregar a foto.");
