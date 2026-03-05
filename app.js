@@ -670,6 +670,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // Foto é opcional por enquanto (problema CORS)
+      if (fotoFile) {
+        console.log("📷 Foto detectada, tentando upload...");
+      } else {
+        console.log("📷 Nenhuma foto enviada (opcional)");
+      }
+
       const emailLower = email.toLowerCase();
       if (!emailLower.endsWith("@aluno.ifsc.edu.br") && !emailLower.endsWith("@ifsc.edu.br")) {
         alert("Informe um e-mail institucional válido (@aluno.ifsc.edu.br ou @ifsc.edu.br).");
@@ -691,6 +698,7 @@ document.addEventListener("DOMContentLoaded", () => {
       let photoPath = null;
       if (fotoFile) {
         try {
+          console.log("📷 Tentando fazer upload da foto...");
           const blob = await compressImageFile(fotoFile, {
             maxWidth: 720,
             maxHeight: 960,
@@ -701,10 +709,12 @@ document.addEventListener("DOMContentLoaded", () => {
           photoPath = `students/${ra}/photo.jpg`;
           const ref = fb.storage.ref(photoPath);
           await ref.put(blob, { contentType: "image/jpeg" });
+          console.log("✅ Foto enviada com sucesso!");
         } catch (err) {
-          console.error("Erro ao processar/enviar foto:", err);
-          alert("Não foi possível enviar a foto. Tente novamente.");
-          return;
+          console.error("❌ Erro ao processar/enviar foto:", err);
+          // Continuar sem foto em vez de bloquear
+          alert("Aviso: Não foi possível enviar a foto. O pedido será enviado sem foto.");
+          photoPath = null;
         }
       }
 
