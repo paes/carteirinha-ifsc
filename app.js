@@ -1329,4 +1329,28 @@ document.addEventListener("DOMContentLoaded", () => {
     await originalRenderAdminPanel();
     setAdminTab("pendentes");
   };
+
+  // Atualizar data/hora do rodapé
+  function updateFooterDateTime() {
+    const footerUpdated = document.getElementById("last-updated");
+    if (footerUpdated) {
+      const now = new Date();
+      const dateTimeString = now.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit", 
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      });
+      footerUpdated.textContent = dateTimeString;
+    }
+  }
+
+  // Atualizar rodapé quando a página carregar
+  updateFooterDateTime();
+  
+  // Atualizar a cada minuto (opcional)
+  setInterval(updateFooterDateTime, 60000);
 });
