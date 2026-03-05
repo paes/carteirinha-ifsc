@@ -533,11 +533,11 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${u.turma || ""}</td>
         <td>${u.responsavelOk ? "Formulário entregue" : "A confirmar"}</td>
         <td>
-          <button class="photo-btn" data-ra="${u.ra}">Ver foto</button>
+          <button class="photo-btn" data-ra="${u.uid}">Ver foto</button>
         </td>
         <td>
-          <button class="approve-btn" data-ra="${u.ra}">Aprovar</button>
-          <button class="reject-btn" data-ra="${u.ra}">Rejeitar</button>
+          <button class="approve-btn" data-ra="${u.uid}">Aprovar</button>
+          <button class="reject-btn" data-ra="${u.uid}">Rejeitar</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -565,10 +565,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tbody.querySelectorAll(".approve-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const ra = btn.getAttribute("data-ra");
+        const uid = btn.getAttribute("data-ra");  // Agora é UID na prática
         fb.firestore
           .collection("students")
-          .doc(ra)
+          .doc(uid)
           .update({ status: "approved", updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
           .then(() => renderAdminPanel());
       });
@@ -576,10 +576,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tbody.querySelectorAll(".reject-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const ra = btn.getAttribute("data-ra");
+        const uid = btn.getAttribute("data-ra");  // Agora é UID na prática
         fb.firestore
           .collection("students")
-          .doc(ra)
+          .doc(uid)
           .update({ status: "rejected", updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
           .then(() => renderAdminPanel());
       });
@@ -698,6 +698,17 @@ document.addEventListener("DOMContentLoaded", () => {
       let photoBase64 = null;
       if (fotoFile) {
         try {
+          console.log("📷 Validando foto...");
+          
+          // Validações do arquivo
+          if (!fotoFile.type.match(/^image\/(jpeg|jpg|png)$/)) {
+            throw new Error("Formato inválido. Apenas JPG e PNG são permitidos.");
+          }
+          
+          if (fotoFile.size > 500 * 1024) {
+            throw new Error("Arquivo muito grande. Máximo permitido: 500KB.");
+          }
+          
           console.log("📷 Processando foto para Firestore...");
           const blob = await compressImageFile(fotoFile, {
             maxWidth: 720,
@@ -715,16 +726,28 @@ document.addEventListener("DOMContentLoaded", () => {
             reader.readAsDataURL(blob);
           });
           
-          console.log("✅ Foto processada com sucesso!");
+          // Validação final do Base64
+          if (!photoBase64 || !photoBase64.startsWith('data:image/')) {
+            throw new Error("Falha ao processar a imagem.");
+          }
+          
+          console.log("✅ Foto validada e processada com sucesso!");
+          console.log(`📊 Tamanho final: ${Math.round(photoBase64.length * 0.75 / 1024)}KB`);
+          
         } catch (err) {
           console.error("❌ Erro ao processar foto:", err);
-          alert("Aviso: Não foi possível processar a foto. O pedido será enviado sem foto.");
+          alert("Erro na foto: " + err.message + "\n\nO pedido será enviado sem foto.");
           photoBase64 = null;
         }
+      } else {
+        console.log("⚠️ Nenhuma foto enviada (obrigatório)");
+        alert("A foto 3x4 é obrigatória. Por favor, selecione uma imagem.");
+        return;
       }
 
       const studentDoc = {
         ra,
+        uid: currentUser.uid,  // Adicionar UID para admin encontrar
         googleEmail: authEmailLower,
         nome,
         curso,
