@@ -525,6 +525,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     pendentes.forEach((u) => {
       const tr = document.createElement("tr");
+      // Usar uid se existir, senão usar ra como fallback
+      const docId = u.uid || u.ra;
       tr.innerHTML = `
         <td>${formatRequestDate(u.createdAt || u.updatedAt)}</td>
         <td>${u.nome}</td>
@@ -533,11 +535,11 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${u.turma || ""}</td>
         <td>${u.responsavelOk ? "Formulário entregue" : "A confirmar"}</td>
         <td>
-          <button class="photo-btn" data-ra="${u.uid}">Ver foto</button>
+          <button class="photo-btn" data-ra="${docId}">Ver foto</button>
         </td>
         <td>
-          <button class="approve-btn" data-ra="${u.uid}">Aprovar</button>
-          <button class="reject-btn" data-ra="${u.uid}">Rejeitar</button>
+          <button class="approve-btn" data-ra="${docId}">Aprovar</button>
+          <button class="reject-btn" data-ra="${docId}">Rejeitar</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -1059,9 +1061,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     filtered.forEach((u) => {
       const tr = document.createElement("tr");
+      // Usar uid se existir, senão usar ra como fallback
+      const docId = u.uid || u.ra;
       tr.innerHTML = `
         <td>${formatRequestDate(u.createdAt || u.updatedAt)}</td>
-        <td><button class="photo-btn" data-ra="${u.ra}">Ver foto</button></td>
+        <td><button class="photo-btn" data-ra="${docId}">Ver foto</button></td>
         <td>${u.nome || ""}</td>
         <td>${u.ra || ""}</td>
         <td>${u.curso || ""}</td>
@@ -1069,7 +1073,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${u.responsavelNome || ""}</td>
         <td>${formatPhone(u.responsavelTelefone || "")}</td>
         <td>
-          <button class="deactivate-btn" data-ra="${u.ra}">Desativar</button>
+          <button class="deactivate-btn" data-ra="${docId}">Desativar</button>
         </td>
       `;
       adminAtivosBody.appendChild(tr);
@@ -1138,9 +1142,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     rejeitados.forEach((u) => {
       const tr = document.createElement("tr");
+      // Usar uid se existir, senão usar ra como fallback
+      const docId = u.uid || u.ra;
       tr.innerHTML = `
         <td>${formatRequestDate(u.createdAt || u.updatedAt)}</td>
-        <td><button class="photo-btn" data-ra="${u.ra}">Ver foto</button></td>
+        <td><button class="photo-btn" data-ra="${docId}">Ver foto</button></td>
         <td>${u.nome || ""}</td>
         <td>${u.ra || ""}</td>
         <td>${u.curso || ""}</td>
@@ -1148,8 +1154,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${u.responsavelNome || ""}</td>
         <td>${formatPhone(u.responsavelTelefone || "")}</td>
         <td>
-          <button class="reapprove-btn" data-ra="${u.ra}">Tornar ativa</button>
-          <button class="delete-btn" data-ra="${u.ra}">Excluir</button>
+          <button class="reapprove-btn" data-ra="${docId}">Tornar ativa</button>
+          <button class="delete-btn" data-ra="${docId}">Excluir</button>
         </td>
       `;
       adminRejeitadosBody.appendChild(tr);
