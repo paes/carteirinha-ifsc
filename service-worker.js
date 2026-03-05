@@ -1,12 +1,12 @@
-const CACHE_NAME = "carteirinha-pwa-v1";
+const CACHE_NAME = "liberaifsc-pwa-v2";
 const ASSETS_TO_CACHE = [
   "./",
   "index.html",
   "styles.css",
   "app.js",
   "manifest.webmanifest",
-  "icons/icon-192.png",
-  "icons/icon-512.png"
+  "icons/android-chrome-192x192.png",
+  "icons/android-chrome-512x512.png"
 ];
 
 self.addEventListener("install", (event) => {

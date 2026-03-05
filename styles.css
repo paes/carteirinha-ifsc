@@ -38,8 +38,87 @@ main#app {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
+#login-screen {
+  max-width: 520px;
+  margin: 1.5rem auto;
+}
+
+#login-screen h1 {
+  text-align: center;
+}
+
+#login-screen .subtitle {
+  text-align: center;
+}
+
+#google-login-btn {
+  width: 100%;
+}
+
+#go-to-request {
+  width: 100%;
+  text-align: center;
+}
+
+#home-screen {
+  max-width: 520px;
+  margin: 1.5rem auto;
+}
+
+#home-screen h2 {
+  text-align: center;
+}
+
+#home-screen .subtitle {
+  text-align: center;
+}
+
+#home-card-btn,
+#home-request-btn,
+#home-admin-btn {
+  width: 100%;
+}
+
+#home-logout-btn {
+  width: 100%;
+  text-align: center;
+}
+
 .hidden {
   display: none;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 100;
+}
+
+.modal-content {
+  width: min(520px, 100%);
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+#photo-modal-img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #ccd1d7;
 }
 
 h1, h2 {
@@ -483,6 +562,15 @@ button.primary:active {
   color: #444;
 }
 
+.card-timestamp {
+  display: block;
+  font-size: 0.6rem;
+  color: #666;
+  margin-top: 0.3rem;
+  font-family: monospace;
+  text-align: right;
+}
+
 /* Botão flutuante de SAIR na tela da carteirinha */
 
 .logout-floating {
@@ -547,6 +635,119 @@ button.reject-btn {
   background: var(--ifsc-vermelho);
   color: #fff;
   font-size: 0.8rem;
+}
+
+button.photo-btn {
+  background: #1f2937;
+  color: #fff;
+  font-size: 0.8rem;
+  margin-right: 0.25rem;
+}
+
+/* Abas do admin */
+
+.admin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 0.6rem 1rem;
+  background: #e5e9ed;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.tab-btn.active {
+  background: var(--ifsc-verde);
+  color: #fff;
+}
+
+.tab-btn:hover:not(.active) {
+  background: #d0d4d9;
+}
+
+/* Áreas das abas */
+
+.tab-area {
+  display: block;
+}
+
+.tab-area.hidden {
+  display: none;
+}
+
+/* Filtros do admin */
+
+.filters {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.filters input,
+.filters select {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #ccd1d7;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+/* Form em linha (roles) */
+
+.row-form {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.row-form input {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #ccd1d7;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+/* Banner admin modo aluno */
+
+#admin-student-banner {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+/* Botões de ação admin */
+
+button.deactivate-btn,
+button.reapprove-btn {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+}
+
+button.deactivate-btn {
+  background: var(--ifsc-vermelho);
+  color: #fff;
+}
+
+button.reapprove-btn {
+  background: var(--ifsc-verde);
+  color: #fff;
 }
 
 /* ===========================

@@ -1,163 +1,82 @@
 // =============================
-// "Banco" em localStorage
+// Firebase (Auth + Firestore + Storage)
 // =============================
 
-const USERS_KEY = "ifscCarteirinhaUsers_v1";
-const SESSION_KEY = "ifscCarteirinhaSession_v1";
+const ADMIN_EMAILS = [
+  "thiago.paes@ifsc.edu.br",
+  "nauber.gavski@ifsc.edu.br",
+  "miguel.zarth@ifsc.edu.br",
+  "felix.medina@ifsc.edu.br",
+  "coord.pedagogica.gpb@ifsc.edu.br"
+];
 
-function loadUsers() {
-  const data = localStorage.getItem(USERS_KEY);
-  return data ? JSON.parse(data) : [];
+function getFirebaseConfig() {
+  if (window.__FIREBASE_CONFIG__) return window.__FIREBASE_CONFIG__;
+  return null;
 }
 
-function saveUsers(users) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
-function getSession() {
-  const data = localStorage.getItem(SESSION_KEY);
-  return data ? JSON.parse(data) : null;
-}
-
-function setSession(ra) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ ra }));
-}
-
-function clearSession() {
-  localStorage.removeItem(SESSION_KEY);
-}
-
-const db = {
-  findUserByRa(ra) {
-    return loadUsers().find((u) => u.ra === ra);
-  },
-
-  createOrUpdateStudent({
-    ra,
-    senha,
-    nome,
-    curso,
-    turma,
-    dataNascimento,
-    email,
-    idade,
-    responsavelNome,
-    responsavelTelefone,
-    responsavelOk,
-    saidaAutorizada,
-    fotoDataUrl
-  }) {
-    const users = loadUsers();
-    let user = users.find((u) => u.ra === ra);
-
-    if (!user) {
-      user = {
-        ra,
-        senha,
-        nome,
-        curso,
-        turma,
-        dataNascimento: dataNascimento || null,
-        email: email || "",
-        idade: idade || "",
-        responsavelNome,
-        responsavelTelefone,
-        role: "student",
-        status: "pending", // sempre inicia pendente
-        responsavelOk: !!responsavelOk,
-        saidaAutorizada: !!saidaAutorizada,
-        fotoDataUrl: fotoDataUrl || null
-      };
-      users.push(user);
-    } else {
-      if (senha) user.senha = senha;
-      if (nome) user.nome = nome;
-      if (curso) user.curso = curso;
-      if (turma) user.turma = turma;
-      if (dataNascimento) user.dataNascimento = dataNascimento;
-      if (email) user.email = email;
-      if (idade) user.idade = idade;
-      if (responsavelNome) user.responsavelNome = responsavelNome;
-      if (responsavelTelefone) user.responsavelTelefone = responsavelTelefone;
-      user.responsavelOk = !!responsavelOk;
-      if (saidaAutorizada !== undefined) {
-        user.saidaAutorizada = !!saidaAutorizada;
-      }
-      if (fotoDataUrl) {
-        user.fotoDataUrl = fotoDataUrl;
-      }
-      if (!user.role) user.role = "student";
-      if (!user.status) user.status = "pending";
-    }
-
-    saveUsers(users);
-    return user;
-  },
-
-  updateStudentStatus(ra, newStatus) {
-    const users = loadUsers();
-    const user = users.find((u) => u.ra === ra && u.role === "student");
-    if (!user) return null;
-    user.status = newStatus;
-    saveUsers(users);
-    return user;
-  },
-
-  listPendingStudents() {
-    return loadUsers().filter(
-      (u) => u.role === "student" && u.status === "pending"
+function requireFirebaseConfig() {
+  const cfg = getFirebaseConfig();
+  if (!cfg) {
+    throw new Error(
+      "Firebase não configurado. Defina window.__FIREBASE_CONFIG__ antes de usar o app."
     );
   }
-};
 
-// =============================
-// Auth (com admin hard-coded)
-// =============================
+  const requiredKeys = [
+    "apiKey",
+    "authDomain",
+    "projectId",
+    "storageBucket",
+    "appId"
+  ];
+  const missing = requiredKeys.filter((k) => !cfg[k] || !String(cfg[k]).trim());
+  if (missing.length > 0) {
+    throw new Error(
+      `Firebase configurado incompleto. Preencha firebase-config.js (faltando: ${missing.join(
+        ", "
+      )}).`
+    );
+  }
 
-const auth = {
-  login(ra, senha) {
-    if (ra === "admin" && senha === "admin123") {
-      setSession("admin");
-      return {
-        ra: "admin",
-        nome: "Administrador",
-        role: "admin",
-        status: "approved"
-      };
-    }
+  return cfg;
+}
 
-    const user = db.findUserByRa(ra);
-    if (!user) return null;
-    if (user.senha !== senha) return null;
-    setSession(user.ra);
-    return user;
-  },
+function initFirebase() {
+  const cfg = requireFirebaseConfig();
+  if (!firebase.apps || firebase.apps.length === 0) {
+    firebase.initializeApp(cfg);
+  }
+  return {
+    auth: firebase.auth(),
+    firestore: firebase.firestore(),
+    storage: firebase.storage()
+  };
+}
 
-  logout() {
-    clearSession();
-  },
+function isAdminEmail(email) {
+  if (!email) return false;
+  const lower = email.toLowerCase();
+  return ADMIN_EMAILS.map((e) => e.toLowerCase()).includes(lower);
+}
 
-  getCurrentUser() {
-    const session = getSession();
-    if (!session) return null;
-
-    if (session.ra === "admin") {
-      return {
-        ra: "admin",
-        nome: "Administrador",
-        role: "admin",
-        status: "approved"
-      };
-    }
-
-    const user = db.findUserByRa(session.ra);
-    if (!user) {
-      clearSession();
+async function signInWithGoogle(auth) {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  try {
+    return await auth.signInWithPopup(provider);
+  } catch (err) {
+    if (err && err.code && String(err.code).includes("popup")) {
+      await auth.signInWithRedirect(provider);
       return null;
     }
-    return user;
+    throw err;
   }
-};
+}
+
+async function signOut(auth) {
+  await auth.signOut();
+}
 
 // =============================
 // Utils
@@ -203,7 +122,6 @@ function formatPhone(phone) {
   }
 }
 
-// ler arquivo como DataURL (para armazenar imagem no localStorage)
 function readFileAsDataURL(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -213,25 +131,244 @@ function readFileAsDataURL(file) {
   });
 }
 
+async function compressImageFile(file, opts) {
+  const {
+    maxWidth = 720,
+    maxHeight = 960,
+    mimeType = "image/jpeg",
+    quality = 0.84,
+    maxBytes = 900 * 1024  // Aumentado para ~900KB
+  } = opts || {};
+
+  const dataUrl = await readFileAsDataURL(file);
+  const img = new Image();
+  const imgLoaded = new Promise((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = reject;
+  });
+  img.src = dataUrl;
+  await imgLoaded;
+
+  let { width, height } = img;
+  const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
+  width = Math.round(width * ratio);
+  height = Math.round(height * ratio);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas não suportado.");
+  ctx.drawImage(img, 0, 0, width, height);
+
+  const blobFrom = (q) =>
+    new Promise((resolve) => canvas.toBlob(resolve, mimeType, q));
+
+  let q = quality;
+  let blob = await blobFrom(q);
+  if (!blob) throw new Error("Falha ao gerar imagem.");
+
+  while (blob.size > maxBytes && q > 0.5) {
+    q = Math.max(0.5, q - 0.07);
+    blob = await blobFrom(q);
+    if (!blob) break;
+  }
+
+  return blob;
+}
+
+function ensureIsoDate(value) {
+  if (!value) return null;
+  const m = String(value).match(/^\d{4}-\d{2}-\d{2}$/);
+  if (!m) return null;
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return null;
+  return value;
+}
+
 // =============================
 // UI / Fluxo de telas
 // =============================
 
 document.addEventListener("DOMContentLoaded", () => {
   const loginScreen = document.getElementById("login-screen");
+  const homeScreen = document.getElementById("home-screen");
   const requestScreen = document.getElementById("request-screen");
   const cardScreen = document.getElementById("card-screen");
   const adminScreen = document.getElementById("admin-screen");
 
+  const googleLoginBtn = document.getElementById("google-login-btn");
+  const loginError = document.getElementById("login-error");
+  const goToRequestBtn = document.getElementById("go-to-request");
+
+  let fb;
+  try {
+    fb = initFirebase();
+  } catch (err) {
+    console.error(err);
+    if (loginError) {
+      loginError.textContent = String(err.message || err);
+      loginError.classList.remove("hidden");
+    }
+    if (googleLoginBtn) {
+      googleLoginBtn.disabled = true;
+      googleLoginBtn.title = "Firebase não configurado";
+    }
+    if (goToRequestBtn) {
+      goToRequestBtn.disabled = true;
+      goToRequestBtn.title = "Firebase não configurado";
+    }
+    return;
+  }
+
   function showScreen(screen) {
-    [loginScreen, requestScreen, cardScreen, adminScreen].forEach((s) => {
+    [loginScreen, homeScreen, requestScreen, cardScreen, adminScreen].forEach((s) => {
       if (!s) return;
       s.classList.add("hidden");
     });
     if (screen) screen.classList.remove("hidden");
   }
 
-  function renderStudentCard(user) {
+  const userNameSpan = document.getElementById("user-name");
+  const userEmailSpan = document.getElementById("user-email");
+
+  const homeCardBtn = document.getElementById("home-card-btn");
+  const homeCardMsg = document.getElementById("home-card-msg");
+  const homeRequestBtn = document.getElementById("home-request-btn");
+  const homeAdminBtn = document.getElementById("home-admin-btn");
+  const homeLogoutBtn = document.getElementById("home-logout-btn");
+  const homeViewAsStudentBtn = document.getElementById("home-view-as-student-btn");
+  const homeBackAdminRoleBtn = document.getElementById("home-back-admin-role-btn");
+  const adminStudentBanner = document.getElementById("admin-student-banner");
+
+  let currentStudentCard = null;
+  let currentUserIsAdmin = false;
+  let isAdminStudentView = false; // admin está "vendo como aluno"?
+  let adminApprovedList = [];
+
+  function updateHomeView() {
+    // Reset banner
+    if (adminStudentBanner) {
+      adminStudentBanner.classList.add("hidden");
+      adminStudentBanner.textContent = "";
+    }
+
+    if (!currentUserIsAdmin) {
+      // Usuário NÃO é admin → sempre modo aluno "normal"
+      isAdminStudentView = false;
+      if (homeAdminBtn) homeAdminBtn.classList.add("hidden");
+      if (homeViewAsStudentBtn) homeViewAsStudentBtn.classList.add("hidden");
+      if (homeBackAdminRoleBtn) homeBackAdminRoleBtn.classList.add("hidden");
+      if (homeCardBtn) homeCardBtn.classList.remove("hidden");
+      if (homeRequestBtn) homeRequestBtn.classList.remove("hidden");
+      
+      if (homeCardBtn) homeCardBtn.disabled = !currentStudentCard;
+      if (homeCardMsg) {
+        if (!currentStudentCard) {
+          homeCardMsg.textContent = "Você ainda não possui carteira cadastrada. Clique em 'Solicitar / atualizar carteira'.";
+        } else if (currentStudentCard.status === "approved") {
+          homeCardMsg.textContent = "";
+        } else if (currentStudentCard.status === "pending") {
+          homeCardMsg.textContent = "Seu pedido está em análise. Ao abrir, a carteirinha será exibida como PENDENTE.";
+        } else if (currentStudentCard.status === "rejected") {
+          homeCardMsg.textContent = "Sua carteira está indeferida/desativada. Ao abrir, a carteirinha aparece como PENDENTE.";
+        } else {
+          homeCardMsg.textContent = "";
+        }
+      }
+      return;
+    }
+
+    // Usuário É admin
+    if (!isAdminStudentView) {
+      // Modo servidor/admin
+      if (homeAdminBtn) homeAdminBtn.classList.remove("hidden");
+      if (homeViewAsStudentBtn) homeViewAsStudentBtn.classList.remove("hidden");
+      if (homeBackAdminRoleBtn) homeBackAdminRoleBtn.classList.add("hidden");
+      if (homeCardBtn) {
+        homeCardBtn.classList.add("hidden");
+        homeCardBtn.disabled = true;
+      }
+      if (homeRequestBtn) homeRequestBtn.classList.add("hidden");
+      if (homeCardMsg) {
+        homeCardMsg.textContent = "Você está logado como servidor administrador. Use o painel administrativo ou clique em 'Ver como aluno (teste)'.";
+      }
+    } else {
+      // Admin em modo aluno (teste)
+      if (adminStudentBanner) {
+        adminStudentBanner.textContent = "Você é administrador e está visualizando o app como aluno (modo de teste). Qualquer carteira criada aqui é apenas para testes.";
+        adminStudentBanner.classList.remove("hidden");
+      }
+      if (homeAdminBtn) homeAdminBtn.classList.add("hidden");
+      if (homeViewAsStudentBtn) homeViewAsStudentBtn.classList.add("hidden");
+      if (homeBackAdminRoleBtn) homeBackAdminRoleBtn.classList.remove("hidden");
+      if (homeCardBtn) {
+        homeCardBtn.classList.remove("hidden");
+        homeCardBtn.disabled = !currentStudentCard;
+      }
+      if (homeRequestBtn) homeRequestBtn.classList.remove("hidden");
+      
+      if (homeCardMsg) {
+        if (!currentStudentCard) {
+          homeCardMsg.textContent = "Você ainda não possui carteira cadastrada. Clique em 'Solicitar / atualizar carteira'.";
+        } else if (currentStudentCard.status === "approved") {
+          homeCardMsg.textContent = "";
+        } else if (currentStudentCard.status === "pending") {
+          homeCardMsg.textContent = "Seu pedido está em análise. Ao abrir, a carteirinha será exibida como PENDENTE.";
+        } else if (currentStudentCard.status === "rejected") {
+          homeCardMsg.textContent = "Sua carteira está indeferida/desativada. Ao abrir, a carteirinha aparece como PENDENTE.";
+        } else {
+          homeCardMsg.textContent = "";
+        }
+      }
+    }
+  }
+
+  let cardTimestampInterval = null;
+
+  function startCardTimestampUpdate() {
+    // Atualiza imediatamente
+    updateCardTimestamp();
+    // E depois a cada segundo
+    if (cardTimestampInterval) clearInterval(cardTimestampInterval);
+    cardTimestampInterval = setInterval(updateCardTimestamp, 1000);
+    
+    // Adiciona listener de clique para atualização manual
+    const cardTimestamp = document.getElementById("card-timestamp");
+    if (cardTimestamp) {
+      cardTimestamp.addEventListener("click", updateCardTimestamp);
+    }
+  }
+
+  function stopCardTimestampUpdate() {
+    if (cardTimestampInterval) {
+      clearInterval(cardTimestampInterval);
+      cardTimestampInterval = null;
+    }
+    // Remove listener de clique
+    const cardTimestamp = document.getElementById("card-timestamp");
+    if (cardTimestamp) {
+      cardTimestamp.removeEventListener("click", updateCardTimestamp);
+    }
+  }
+
+  function updateCardTimestamp() {
+    const cardTimestamp = document.getElementById("card-timestamp");
+    if (cardTimestamp) {
+      const now = new Date();
+      const dataHora = now.toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+      cardTimestamp.textContent = `Gerado em: ${dataHora}`;
+    }
+  }
+
+  async function renderStudentCard(user) {
     const cardName = document.getElementById("card-name");
     const cardRa = document.getElementById("card-ra");
     const cardCourse = document.getElementById("card-course");
@@ -266,12 +403,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // foto 3x4
     if (photoPlaceholder) {
-      if (user.fotoDataUrl) {
-        photoPlaceholder.style.backgroundImage = `url(${user.fotoDataUrl})`;
-        photoPlaceholder.textContent = "";
-      } else {
-        photoPlaceholder.style.backgroundImage = "none";
-        photoPlaceholder.textContent = "FOTO";
+      photoPlaceholder.style.backgroundImage = "none";
+      photoPlaceholder.textContent = "FOTO";
+      if (user.photoPath) {
+        try {
+          const url = await fb.storage.ref(user.photoPath).getDownloadURL();
+          photoPlaceholder.style.backgroundImage = `url(${url})`;
+          photoPlaceholder.textContent = "";
+        } catch (err) {
+          console.warn("Não foi possível carregar foto:", err);
+        }
       }
     }
     // carimbo grande e situação
@@ -298,6 +439,21 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Data/hora em tempo real na carteirinha (para evitar burlagem com screenshots)
+    const cardTimestamp = document.getElementById("card-timestamp");
+    if (cardTimestamp) {
+      const now = new Date();
+      const dataHora = now.toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+      cardTimestamp.textContent = `Gerado em: ${dataHora}`;
+    }
+
     if (statusMsg) {
       if (user.status === "approved") {
         statusMsg.textContent =
@@ -316,17 +472,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
   }
 
-  function renderAdminPanel() {
+  // Função auxiliar para formatar data do pedido
+  function formatRequestDate(timestamp) {
+    if (!timestamp) return "-";
+    // Firebase timestamp pode ser um objeto com toDate() ou já ser uma Date
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  async function renderAdminPanel() {
     const tbody = document.getElementById("admin-table-body");
     if (!tbody) return;
     tbody.innerHTML = "";
 
-    const pendentes = db.listPendingStudents();
+    const snap = await fb.firestore
+      .collection("students")
+      .where("status", "==", "pending")
+      .get();
+    const pendentes = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
     if (pendentes.length === 0) {
       const tr = document.createElement("tr");
       const td = document.createElement("td");
-      td.colSpan = 6;
+      td.colSpan = 8;
       td.textContent = "Nenhum pedido pendente.";
       tr.appendChild(td);
       tbody.appendChild(tr);
@@ -336,11 +510,15 @@ document.addEventListener("DOMContentLoaded", () => {
     pendentes.forEach((u) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
+        <td>${formatRequestDate(u.createdAt || u.updatedAt)}</td>
         <td>${u.nome}</td>
         <td>${u.ra}</td>
         <td>${u.curso}</td>
         <td>${u.turma || ""}</td>
         <td>${u.responsavelOk ? "Formulário entregue" : "A confirmar"}</td>
+        <td>
+          <button class="photo-btn" data-ra="${u.ra}">Ver foto</button>
+        </td>
         <td>
           <button class="approve-btn" data-ra="${u.ra}">Aprovar</button>
           <button class="reject-btn" data-ra="${u.ra}">Rejeitar</button>
@@ -349,81 +527,96 @@ document.addEventListener("DOMContentLoaded", () => {
       tbody.appendChild(tr);
     });
 
+    const photoModal = document.getElementById("photo-modal");
+    const photoModalClose = document.getElementById("photo-modal-close");
+    const photoModalImg = document.getElementById("photo-modal-img");
+
+    function closePhotoModal() {
+      if (photoModal) photoModal.classList.add("hidden");
+      if (photoModalImg) photoModalImg.src = "";
+    }
+
+    if (photoModalClose) {
+      photoModalClose.addEventListener("click", closePhotoModal);
+    }
+
+    tbody.querySelectorAll(".photo-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const ra = btn.getAttribute("data-ra");
+        await showPhotoModal(ra);
+      });
+    });
+
     tbody.querySelectorAll(".approve-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const ra = btn.getAttribute("data-ra");
-        db.updateStudentStatus(ra, "approved");
-        renderAdminPanel();
+        fb.firestore
+          .collection("students")
+          .doc(ra)
+          .update({ status: "approved", updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+          .then(() => renderAdminPanel());
       });
     });
 
     tbody.querySelectorAll(".reject-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const ra = btn.getAttribute("data-ra");
-        db.updateStudentStatus(ra, "rejected");
-        renderAdminPanel();
+        fb.firestore
+          .collection("students")
+          .doc(ra)
+          .update({ status: "rejected", updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+          .then(() => renderAdminPanel());
       });
     });
   }
 
-  // Decide tela inicial
-  const current = auth.getCurrentUser();
-  if (!current) {
-    showScreen(loginScreen);
-  } else if (current.role === "admin") {
-    renderAdminPanel();
-    showScreen(adminScreen);
-  } else {
-    renderStudentCard(current);
-    showScreen(cardScreen);
-  }
-
-  const loginForm = document.getElementById("login-form");
-  const loginError = document.getElementById("login-error");
-  const goToRequestBtn = document.getElementById("go-to-request");
   const backToLoginBtn = document.getElementById("back-to-login");
   const requestForm = document.getElementById("request-form");
   const logoutBtn = document.getElementById("logout-btn");
   const adminLogoutBtn = document.getElementById("admin-logout-btn");
 
-  // LOGIN
-  if (loginForm) {
-    loginForm.addEventListener("submit", (e) => {
-      e.preventDefault();
+  const dataNascInput = document.getElementById("req-data-nasc");
+  if (dataNascInput && window.flatpickr) {
+    flatpickr(dataNascInput, {
+      altInput: true,
+      altFormat: "d/m/Y",
+      dateFormat: "Y-m-d",
+      allowInput: true
+    });
+  }
+
+  if (googleLoginBtn) {
+    googleLoginBtn.addEventListener("click", async () => {
       if (loginError) loginError.classList.add("hidden");
-
-      const ra = document.getElementById("ra")?.value.trim();
-      const senha = document.getElementById("password")?.value || "";
-
-      const user = auth.login(ra, senha);
-      if (!user) {
+      try {
+        await signInWithGoogle(fb.auth);
+      } catch (err) {
+        console.error(err);
         if (loginError) loginError.classList.remove("hidden");
-        return;
       }
-
-      if (user.role === "admin") {
-        renderAdminPanel();
-        showScreen(adminScreen);
-      } else {
-        renderStudentCard(user);
-        showScreen(cardScreen);
-      }
-
-      loginForm.reset();
     });
   }
 
   // BOTÃO "SOLICITAR CARTEIRINHA"
   if (goToRequestBtn) {
-    goToRequestBtn.addEventListener("click", () => {
-      showScreen(requestScreen);
+    goToRequestBtn.addEventListener("click", async () => {
+      if (loginError) loginError.classList.add("hidden");
+      try {
+        if (!fb.auth.currentUser) {
+          await signInWithGoogle(fb.auth);
+        }
+        showScreen(requestScreen);
+      } catch (err) {
+        console.error(err);
+        if (loginError) loginError.classList.remove("hidden");
+      }
     });
   }
 
   // VOLTAR PARA LOGIN
   if (backToLoginBtn) {
     backToLoginBtn.addEventListener("click", () => {
-      showScreen(loginScreen);
+      showScreen(homeScreen);
     });
   }
 
@@ -431,6 +624,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (requestForm) {
     requestForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+
+      const currentUser = fb.auth.currentUser;
+      if (!currentUser || !currentUser.email) {
+        alert("Faça login com Google para enviar sua solicitação.");
+        return;
+      }
 
       const ra = document.getElementById("req-ra")?.value.trim();
       const nome = document.getElementById("req-nome")?.value.trim();
@@ -440,8 +639,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const email = document.getElementById("req-email")?.value.trim();
       const respNome = document.getElementById("req-resp-nome")?.value.trim();
       const respTel = document.getElementById("req-resp-tel")?.value.trim();
-      const senha = document.getElementById("req-senha")?.value || "";
-      const senha2 = document.getElementById("req-senha2")?.value || "";
       const respOk = document.getElementById("req-resp-ok")?.checked;
       const saidaAutorizada =
         document.getElementById("req-saida-autorizada")?.checked;
@@ -452,24 +649,8 @@ document.addEventListener("DOMContentLoaded", () => {
           ? fotoInput.files[0]
           : null;
 
-      if (
-        !ra ||
-        !nome ||
-        !curso ||
-        !turma ||
-        !dataNasc ||
-        !email ||
-        !respNome ||
-        !respTel ||
-        !senha ||
-        !senha2
-      ) {
+      if (!ra || !nome || !curso || !turma || !dataNasc || !email || !respNome || !respTel) {
         alert("Preencha todos os campos obrigatórios.");
-        return;
-      }
-
-      if (senha !== senha2) {
-        alert("As senhas não coincidem. Verifique e tente novamente.");
         return;
       }
 
@@ -479,40 +660,68 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      let fotoDataUrl = null;
+      const authEmailLower = String(currentUser.email || "").toLowerCase();
+      if (!authEmailLower.endsWith("@aluno.ifsc.edu.br")) {
+        alert("Use sua conta Google institucional (@aluno.ifsc.edu.br) para entrar.");
+        return;
+      }
+
+      const dataNascIso = ensureIsoDate(dataNasc);
+      if (!dataNascIso) {
+        alert("Informe a data de nascimento em um formato válido.");
+        return;
+      }
+
+      let photoPath = null;
       if (fotoFile) {
-        const maxBytes = 300 * 1024; // 300 KB
-        if (fotoFile.size > maxBytes) {
-          alert("A foto 3x4 deve ter no máximo 300 KB.");
-          return;
-        }
         try {
-          fotoDataUrl = await readFileAsDataURL(fotoFile);
+          const blob = await compressImageFile(fotoFile, {
+            maxWidth: 720,
+            maxHeight: 960,
+            mimeType: "image/jpeg",
+            quality: 0.84,
+            maxBytes: 900 * 1024  // Aumentado para ~900KB
+          });
+          photoPath = `students/${ra}/photo.jpg`;
+          const ref = fb.storage.ref(photoPath);
+          await ref.put(blob, { contentType: "image/jpeg" });
         } catch (err) {
-          console.error("Erro ao ler foto:", err);
-          alert("Não foi possível ler a foto. Tente novamente.");
+          console.error("Erro ao processar/enviar foto:", err);
+          alert("Não foi possível enviar a foto. Tente novamente.");
           return;
         }
       }
 
-      const user = db.createOrUpdateStudent({
+      const studentDoc = {
         ra,
-        senha,
+        googleEmail: authEmailLower,
         nome,
         curso,
         turma,
-        dataNascimento: dataNasc,
-        email,
+        dataNascimento: dataNascIso,
+        email: emailLower,
         responsavelNome: respNome,
         responsavelTelefone: respTel,
-        responsavelOk: respOk,
-        saidaAutorizada,
-        fotoDataUrl
-      });
+        responsavelOk: !!respOk,
+        saidaAutorizada: !!saidaAutorizada,
+        photoPath: photoPath || null,
+        role: "student",
+        status: "pending",
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
 
-      setSession(user.ra);
-      renderStudentCard(user);
-      showScreen(cardScreen);
+      const ref = fb.firestore.collection("students").doc(ra);
+      const existing = await ref.get();
+      if (!existing.exists) {
+        studentDoc.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      }
+
+      await ref.set(studentDoc, { merge: true });
+
+      const saved = (await ref.get()).data();
+      currentStudentCard = saved;
+      updateHomeView();
+      showScreen(homeScreen);
 
       requestForm.reset();
     });
@@ -520,17 +729,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // LOGOUT (estudante)
   if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      auth.logout();
-      showScreen(loginScreen);
+    logoutBtn.addEventListener("click", async () => {
+      stopCardTimestampUpdate(); // Para atualização do timestamp
+      showScreen(homeScreen);
     });
   }
 
   // LOGOUT (admin)
   if (adminLogoutBtn) {
-    adminLogoutBtn.addEventListener("click", () => {
-      auth.logout();
-      showScreen(loginScreen);
+    adminLogoutBtn.addEventListener("click", async () => {
+      showScreen(homeScreen);
     });
   }
 
@@ -542,4 +750,497 @@ document.addEventListener("DOMContentLoaded", () => {
         .catch((err) => console.error("SW falhou:", err));
     });
   }
+
+  fb.auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      currentStudentCard = null;
+      currentUserIsAdmin = false;
+      showScreen(loginScreen);
+      return;
+    }
+
+    const email = user.email || "";
+    currentUserIsAdmin = isAdminEmail(email);
+
+    if (userNameSpan) userNameSpan.textContent = user.displayName || "Usuário IFSC";
+    if (userEmailSpan) userEmailSpan.textContent = user.email || "";
+
+    // carrega carteira do aluno (se existir)
+    currentStudentCard = null;
+    try {
+      const snap = await fb.firestore
+        .collection("students")
+        .where("googleEmail", "==", String(email).toLowerCase())
+        .limit(1)
+        .get();
+
+      if (!snap.empty) {
+        currentStudentCard = snap.docs[0].data();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+    updateHomeView();
+    showScreen(homeScreen);
+  });
+
+  if (homeCardBtn) {
+    homeCardBtn.addEventListener("click", async () => {
+      try {
+        // Recarrega dados atualizados do Firestore para garantir status mais recente
+        const currentUser = fb.auth.currentUser;
+        if (!currentUser) {
+          alert("Faça login para acessar sua carteirinha.");
+          return;
+        }
+        
+        const email = currentUser.email || "";
+        const snap = await fb.firestore
+          .collection("students")
+          .where("googleEmail", "==", String(email).toLowerCase())
+          .limit(1)
+          .get();
+        
+        let studentData = null;
+        if (!snap.empty) {
+          studentData = snap.docs[0].data();
+          currentStudentCard = studentData; // atualiza cache
+        }
+        
+        if (!studentData) {
+          alert("Você ainda não possui carteira cadastrada. Clique em 'Solicitar / atualizar carteira'.");
+          return;
+        }
+        
+        await renderStudentCard(studentData);
+        startCardTimestampUpdate();
+        showScreen(cardScreen);
+      } catch (err) {
+        console.error(err);
+        alert("Não foi possível abrir a carteirinha.");
+      }
+    });
+  }
+
+  if (homeRequestBtn) {
+    homeRequestBtn.addEventListener("click", () => {
+      // Preenche o email institucional automaticamente com o email logado
+      const currentUser = fb.auth.currentUser;
+      const emailInput = document.getElementById("req-email");
+      if (currentUser && emailInput) {
+        emailInput.value = currentUser.email || "";
+      }
+      showScreen(requestScreen);
+    });
+  }
+
+  if (homeAdminBtn) {
+    homeAdminBtn.addEventListener("click", async () => {
+      if (!currentUserIsAdmin) {
+        alert("Você não tem permissão para acessar o painel administrativo.");
+        return;
+      }
+      try {
+        await renderAdminPanel();
+        showScreen(adminScreen);
+      } catch (err) {
+        console.error(err);
+        alert("Não foi possível carregar o painel administrativo.");
+      }
+    });
+  }
+
+  if (homeLogoutBtn) {
+    homeLogoutBtn.addEventListener("click", async () => {
+      await signOut(fb.auth);
+      showScreen(loginScreen);
+    });
+  }
+
+  // =============================
+  // ADMIN: Variáveis e elementos das abas
+  // =============================
+  const adminTabsPendingBtn = document.getElementById("admin-tab-pendentes");
+  const adminTabsActiveBtn = document.getElementById("admin-tab-ativos");
+  const adminTabsRejectedBtn = document.getElementById("admin-tab-rejeitados");
+  const adminTabsRolesBtn = document.getElementById("admin-tab-roles");
+
+  const adminPendentesArea = document.getElementById("admin-pendentes-area");
+  const adminAtivosArea = document.getElementById("admin-ativos-area");
+  const adminRejeitadosArea = document.getElementById("admin-rejeitados-area");
+  const adminRolesArea = document.getElementById("admin-roles-area");
+
+  const adminAtivosBody = document.getElementById("admin-ativos-body");
+  const adminRejeitadosBody = document.getElementById("admin-rejeitados-body");
+  const adminRolesBody = document.getElementById("admin-roles-body");
+
+  const adminSearchInput = document.getElementById("admin-search");
+  const adminFilterCurso = document.getElementById("admin-filter-curso");
+  const adminFilterTurma = document.getElementById("admin-filter-turma");
+
+  const adminRolesForm = document.getElementById("admin-roles-form");
+  const adminRoleLoginInput = document.getElementById("admin-role-login");
+
+  // =============================
+  // ADMIN: Funções de controle de abas
+  // =============================
+  function setAdminTab(tabName) {
+    const configs = [
+      { name: "pendentes", btn: adminTabsPendingBtn, area: adminPendentesArea },
+      { name: "ativos", btn: adminTabsActiveBtn, area: adminAtivosArea },
+      { name: "rejeitados", btn: adminTabsRejectedBtn, area: adminRejeitadosArea },
+      { name: "roles", btn: adminTabsRolesBtn, area: adminRolesArea }
+    ];
+
+    configs.forEach(({ name, btn, area }) => {
+      if (!btn || !area) return;
+      if (name === tabName) {
+        btn.classList.add("active");
+        area.classList.remove("hidden");
+      } else {
+        btn.classList.remove("active");
+        area.classList.add("hidden");
+      }
+    });
+  }
+
+  // =============================
+  // Função auxiliar para mostrar foto no modal (usada por todas as abas)
+  // =============================
+  async function showPhotoModal(ra) {
+    const photoModal = document.getElementById("photo-modal");
+    const photoModalImg = document.getElementById("photo-modal-img");
+    
+    if (!ra) {
+      alert("RA não informado.");
+      return;
+    }
+    
+    try {
+      const doc = await fb.firestore.collection("students").doc(ra).get();
+      const data = doc.exists ? doc.data() : null;
+      if (!data || !data.photoPath) {
+        alert("Aluno não enviou foto.");
+        return;
+      }
+      const url = await fb.storage.ref(data.photoPath).getDownloadURL();
+      if (photoModalImg) photoModalImg.src = url;
+      if (photoModal) photoModal.classList.remove("hidden");
+    } catch (err) {
+      console.error(err);
+      alert("Não foi possível carregar a foto.");
+    }
+  }
+
+  // =============================
+  // ADMIN: Funções de renderização das abas
+  // =============================
+  
+  // Aba Ativos (com filtros)
+  function applyAdminActiveFilters() {
+    if (!adminAtivosBody) return;
+    adminAtivosBody.innerHTML = "";
+
+    const search = (adminSearchInput?.value || "").trim().toLowerCase();
+    const curso = adminFilterCurso?.value || "";
+    const turma = adminFilterTurma?.value || "";
+
+    const filtered = adminApprovedList.filter((u) => {
+      if (curso && u.curso !== curso) return false;
+      if (turma && u.turma !== turma) return false;
+
+      if (search) {
+        const alvo = ((u.nome || "") + " " + (u.ra || "")).toLowerCase();
+        if (!alvo.includes(search)) return false;
+      }
+
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 9;
+      td.textContent = "Nenhuma carteira ativa encontrada.";
+      tr.appendChild(td);
+      adminAtivosBody.appendChild(tr);
+      return;
+    }
+
+    filtered.forEach((u) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${formatRequestDate(u.createdAt || u.updatedAt)}</td>
+        <td><button class="photo-btn" data-ra="${u.ra}">Ver foto</button></td>
+        <td>${u.nome || ""}</td>
+        <td>${u.ra || ""}</td>
+        <td>${u.curso || ""}</td>
+        <td>${u.turma || ""}</td>
+        <td>${u.responsavelNome || ""}</td>
+        <td>${formatPhone(u.responsavelTelefone || "")}</td>
+        <td>
+          <button class="deactivate-btn" data-ra="${u.ra}">Desativar</button>
+        </td>
+      `;
+      adminAtivosBody.appendChild(tr);
+    });
+
+    adminAtivosBody.querySelectorAll(".deactivate-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const ra = btn.getAttribute("data-ra");
+        const ok = confirm("Deseja realmente desativar esta carteira?");
+        if (!ok) return;
+        try {
+          await fb.firestore.collection("students").doc(ra).update({
+            status: "rejected",
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          await loadAdminApprovedAndRender();
+        } catch (err) {
+          console.error(err);
+          alert("Não foi possível desativar.");
+        }
+      });
+    });
+
+    // Event listeners para botões "Ver foto" na aba Ativos
+    adminAtivosBody.querySelectorAll(".photo-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const ra = btn.getAttribute("data-ra");
+        await showPhotoModal(ra);
+      });
+    });
+  }
+
+  async function loadAdminApprovedAndRender() {
+    const snap = await fb.firestore.collection("students").where("status", "==", "approved").get();
+    adminApprovedList = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    applyAdminActiveFilters();
+  }
+
+  // Aba Rejeitados
+  async function renderAdminRejectedPanel() {
+    if (!adminRejeitadosBody) return;
+    adminRejeitadosBody.innerHTML = "";
+
+    const snap = await fb.firestore.collection("students").where("status", "==", "rejected").get();
+    const rejeitados = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+    if (rejeitados.length === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 9;
+      td.textContent = "Nenhum pedido rejeitado/desativado.";
+      tr.appendChild(td);
+      adminRejeitadosBody.appendChild(tr);
+      return;
+    }
+
+    rejeitados.forEach((u) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${formatRequestDate(u.createdAt || u.updatedAt)}</td>
+        <td><button class="photo-btn" data-ra="${u.ra}">Ver foto</button></td>
+        <td>${u.nome || ""}</td>
+        <td>${u.ra || ""}</td>
+        <td>${u.curso || ""}</td>
+        <td>${u.turma || ""}</td>
+        <td>${u.responsavelNome || ""}</td>
+        <td>${formatPhone(u.responsavelTelefone || "")}</td>
+        <td>
+          <button class="reapprove-btn" data-ra="${u.ra}">Tornar ativa</button>
+          <button class="delete-btn" data-ra="${u.ra}">Excluir</button>
+        </td>
+      `;
+      adminRejeitadosBody.appendChild(tr);
+    });
+
+    adminRejeitadosBody.querySelectorAll(".reapprove-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const ra = btn.getAttribute("data-ra");
+        const ok = confirm("Reaprovar este pedido?");
+        if (!ok) return;
+        try {
+          await fb.firestore.collection("students").doc(ra).update({
+            status: "approved",
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          await renderAdminRejectedPanel();
+        } catch (err) {
+          console.error(err);
+          alert("Não foi possível reaprovar.");
+        }
+      });
+    });
+
+    // Botões de excluir na aba Rejeitados
+    adminRejeitadosBody.querySelectorAll(".delete-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const ra = btn.getAttribute("data-ra");
+        const ok = confirm("Tem certeza que deseja EXCLUIR permanentemente este pedido?\n\nEsta ação não pode ser desfeita!");
+        if (!ok) return;
+        try {
+          await fb.firestore.collection("students").doc(ra).delete();
+          await renderAdminRejectedPanel();
+        } catch (err) {
+          console.error(err);
+          alert("Não foi possível excluir.");
+        }
+      });
+    });
+
+    // Event listeners para botões "Ver foto" na aba Rejeitados
+    adminRejeitadosBody.querySelectorAll(".photo-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const ra = btn.getAttribute("data-ra");
+        await showPhotoModal(ra);
+      });
+    });
+  }
+
+  // Aba Roles (Administradores)
+  async function renderAdminRolesPanel() {
+    if (!adminRolesBody) return;
+    adminRolesBody.innerHTML = "";
+
+    if (!currentUserIsAdmin) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 3;
+      td.textContent = "Apenas administradores podem visualizar esta área.";
+      tr.appendChild(td);
+      adminRolesBody.appendChild(tr);
+      return;
+    }
+
+    // Lista fixa de admins (bootstrap)
+    const fixedAdmins = [
+      "thiago.paes@ifsc.edu.br",
+      "nauber.gavski@ifsc.edu.br", 
+      "miguel.zarth@ifsc.edu.br",
+      "felix.medina@ifsc.edu.br",
+      "coord.pedagogica.gpb@ifsc.edu.br"
+    ];
+
+    let admins = fixedAdmins.map(email => ({ email, role: "admin", fromBootstrap: true }));
+
+    admins.sort((a, b) => (a.email || "").localeCompare(b.email || ""));
+
+    admins.forEach((adm) => {
+      const tr = document.createElement("tr");
+      const label = adm.fromBootstrap ? " (fixo)" : "";
+      tr.innerHTML = `
+        <td>${adm.email}</td>
+        <td>${adm.role || "admin"}${label}</td>
+        <td>
+          ${adm.fromBootstrap 
+            ? "<span style='font-size:0.8rem;color:#777'>Não removível</span>" 
+            : `<button class="remove-admin-btn" data-email="${adm.email}">Remover</button>`}
+        </td>
+      `;
+      adminRolesBody.appendChild(tr);
+    });
+  }
+
+  // =============================
+  // ADMIN: Event listeners das abas
+  // =============================
+  if (adminTabsPendingBtn) {
+    adminTabsPendingBtn.addEventListener("click", async () => {
+      setAdminTab("pendentes");
+      await renderAdminPanel();
+    });
+  }
+
+  if (adminTabsActiveBtn) {
+    adminTabsActiveBtn.addEventListener("click", async () => {
+      setAdminTab("ativos");
+      await loadAdminApprovedAndRender();
+    });
+  }
+
+  if (adminTabsRejectedBtn) {
+    adminTabsRejectedBtn.addEventListener("click", async () => {
+      setAdminTab("rejeitados");
+      await renderAdminRejectedPanel();
+    });
+  }
+
+  if (adminTabsRolesBtn) {
+    adminTabsRolesBtn.addEventListener("click", async () => {
+      setAdminTab("roles");
+      await renderAdminRolesPanel();
+    });
+  }
+
+  // Filtros
+  if (adminSearchInput) {
+    adminSearchInput.addEventListener("input", () => {
+      applyAdminActiveFilters();
+    });
+  }
+
+  if (adminFilterCurso) {
+    adminFilterCurso.addEventListener("change", () => {
+      applyAdminActiveFilters();
+    });
+  }
+
+  if (adminFilterTurma) {
+    adminFilterTurma.addEventListener("change", () => {
+      applyAdminActiveFilters();
+    });
+  }
+
+  // Form de adicionar admin
+  if (adminRolesForm && adminRoleLoginInput) {
+    adminRolesForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentUserIsAdmin) {
+        alert("Apenas administradores podem alterar esta lista.");
+        return;
+      }
+
+      let login = adminRoleLoginInput.value.trim().toLowerCase();
+      if (!login) {
+        alert("Informe o login do servidor.");
+        return;
+      }
+
+      if (!login.includes("@")) {
+        login = `${login}@ifsc.edu.br`;
+      }
+
+      alert(`Admin ${login} seria adicionado (funcionalidade simulada).`);
+      adminRoleLoginInput.value = "";
+      await renderAdminRolesPanel();
+    });
+  }
+
+  // =============================
+  // SWITCH DE PAPEL: Admin <-> Aluno
+  // =============================
+  if (homeViewAsStudentBtn) {
+    homeViewAsStudentBtn.addEventListener("click", () => {
+      if (!currentUserIsAdmin) return;
+      isAdminStudentView = true;
+      updateHomeView();
+    });
+  }
+
+  if (homeBackAdminRoleBtn) {
+    homeBackAdminRoleBtn.addEventListener("click", () => {
+      if (!currentUserIsAdmin) return;
+      isAdminStudentView = false;
+      updateHomeView();
+    });
+  }
+
+  // Atualizar renderAdminPanel para usar setAdminTab
+  const originalRenderAdminPanel = renderAdminPanel;
+  renderAdminPanel = async function() {
+    await originalRenderAdminPanel();
+    setAdminTab("pendentes");
+  };
 });

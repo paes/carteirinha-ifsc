@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Carteira de Saída Antecipada - IFSC Garopaba</title>
+  <title>LiberaIFSC</title>
 
   <meta name="theme-color" content="#7aba05" />
 
@@ -18,6 +18,7 @@
   <link rel="icon" href="icons/favicon.ico" />
 
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 </head>
 
 <body>
@@ -33,40 +34,45 @@
         />
       </div>
 
-      <h1>Carteira de Saída Antecipada</h1>
-      <p class="subtitle">Faça login para acessar sua carteira de saída</p>
+      <h1>LiberaIFSC</h1>
+      <p class="subtitle">Entre com sua conta institucional para acessar sua carteirinha</p>
 
-      <form id="login-form">
-        <label>
-          Matrícula
-          <input
-            type="text"
-            id="ra"
-            required
-            placeholder="Ex: 20251234"
-            inputmode="numeric"
-          />
-        </label>
-
-        <label>
-          Senha
-          <input
-            type="password"
-            id="password"
-            required
-            placeholder="••••••"
-          />
-        </label>
-
-        <button type="submit" class="primary">Entrar</button>
-        <p id="login-error" class="error hidden">
-          Matrícula ou senha inválidos.
-        </p>
-      </form>
+      <button id="google-login-btn" type="button" class="primary">
+        Entrar com Google
+      </button>
 
       <button id="go-to-request" class="link-button" type="button">
         Primeiro acesso? Solicitar carteira
       </button>
+
+      <p id="login-error" class="error hidden">
+        Não foi possível fazer login.
+      </p>
+    </section>
+
+    <!-- TELA INICIAL (PÓS-LOGIN) -->
+    <section id="home-screen" class="screen hidden">
+      <h2>Olá,</h2>
+      <p class="subtitle">
+        Logado como <strong><span id="user-name"></span></strong>
+        <br />
+        <span id="user-email"></span>
+      </p>
+
+      <!-- Banner quando admin está vendo como aluno -->
+      <div id="admin-student-banner" class="info-box hidden" style="margin-bottom:1rem;"></div>
+
+      <button id="home-card-btn" type="button" class="primary">Abrir carteirinha</button>
+      <p id="home-card-msg" class="subtitle" style="margin-bottom:0.75rem;"></p>
+
+      <button id="home-request-btn" type="button" class="primary">Solicitar / atualizar carteira</button>
+      
+      <!-- Botões específicos para admin -->
+      <button id="home-admin-btn" type="button" class="primary hidden">Painel de aprovação</button>
+      <button id="home-view-as-student-btn" type="button" class="primary hidden">Ver como aluno (teste)</button>
+      <button id="home-back-admin-role-btn" type="button" class="primary hidden">Voltar para papel servidor</button>
+
+      <button id="home-logout-btn" class="link-button" type="button">Sair</button>
     </section>
 
     <!-- TELA DE SOLICITAÇÃO DE CARTEIRA (ESTUDANTE) -->
@@ -119,7 +125,6 @@
             <option value="">Selecione...</option>
             <!-- Informática -->
             <option value="INF23">INF23</option>
-            <option value="INF24">INF24</option>
             <option value="INF25">INF25</option>
             <option value="INF26">INF26</option>
             <!-- Lazer -->
@@ -140,7 +145,7 @@
 
         <label>
           Data de nascimento do aluno
-          <input type="date" id="req-data-nasc" required />
+          <input type="text" id="req-data-nasc" required placeholder="YYYY-MM-DD" />
         </label>
 
         <label>
@@ -150,6 +155,9 @@
             id="req-email"
             required
             placeholder="login@aluno.ifsc.edu.br"
+            readonly
+            style="background-color: #f5f5f5; color: #666;"
+            title="E-mail do usuário logado"
           />
         </label>
 
@@ -170,18 +178,8 @@
         </label>
 
         <label>
-          Foto 3x4 (máx. 300 KB, formato imagem)
+          Foto 3x4 (máx. 900 KB, formato imagem)
           <input type="file" id="req-foto" accept="image/*" />
-        </label>
-
-        <label>
-          Defina uma senha para acesso
-          <input type="password" id="req-senha" required />
-        </label>
-
-        <label>
-          Confirme a senha
-          <input type="password" id="req-senha2" required />
         </label>
 
         <!-- BLOCO DE INFORMAÇÕES SOBRE AUTORIZAÇÃO DE SAÍDA ANTECIPADA -->
@@ -241,8 +239,7 @@
 
         <label class="checkbox-line">
           <input type="checkbox" id="req-resp-ok" />
-          Entreguei (ou entregarei) na coordenação a autorização assinada pelo
-          responsável.
+          Enviar o termo assinado.
         </label>
 
         <button type="submit" class="primary">
@@ -347,6 +344,8 @@
                   aulas; ausência eventual de professores(as); atendimentos
                   extraclasse ou monitoria; finalização antecipada de avaliações.
                 </span>
+                <span id="card-timestamp" class="card-timestamp" title="Clique para atualizar"></span>
+                <span class="timestamp-hint">Toque no horário para atualizar</span>
               </div>
             </div>
           </div>
@@ -359,35 +358,162 @@
       <header class="top-bar">
         <h2>Painel de Aprovação</h2>
         <button id="admin-logout-btn" class="link-button" type="button">
-          Sair
+          Voltar
         </button>
       </header>
 
-      <p class="subtitle">
-        Abaixo estão os pedidos de carteira de saída pendentes de aprovação.
-      </p>
+      <!-- Abas do admin -->
+      <div class="admin-tabs">
+        <button id="admin-tab-pendentes" class="tab-btn active">Pendentes</button>
+        <button id="admin-tab-ativos" class="tab-btn">Ativos</button>
+        <button id="admin-tab-rejeitados" class="tab-btn">Rejeitados</button>
+        <button id="admin-tab-roles" class="tab-btn hidden">Administradores</button>
+      </div>
 
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Matrícula</th>
-              <th>Curso</th>
-              <th>Turma</th>
-              <th>Formulário</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="admin-table-body">
-            <!-- preenchido via JS -->
-          </tbody>
-        </table>
+      <!-- Aba Pendentes -->
+      <div id="admin-pendentes-area" class="tab-area">
+        <p class="subtitle">
+          Abaixo estão os pedidos de carteira de saída pendentes de aprovação.
+        </p>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Data do pedido</th>
+                <th>Nome</th>
+                <th>Matrícula</th>
+                <th>Curso</th>
+                <th>Turma</th>
+                <th>Formulário</th>
+                <th>Foto</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table-body">
+              <!-- preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Aba Ativos -->
+      <div id="admin-ativos-area" class="tab-area hidden">
+        <p class="subtitle">Busque e filtre as carteiras ativas.</p>
+        <div class="filters">
+          <input type="text" id="admin-search" placeholder="Buscar por nome ou RA..." />
+          <select id="admin-filter-curso">
+            <option value="">Todos os cursos</option>
+            <option value="Curso Técnico Integrado em Administração">Administração</option>
+            <option value="Curso Técnico Integrado em Informática">Informática</option>
+            <option value="Curso Técnico Integrado em Lazer">Lazer</option>
+            <option value="Curso Técnico Concomitante em Biotecnologia">Biotecnologia</option>
+          </select>
+          <select id="admin-filter-turma">
+            <option value="">Todas as turmas</option>
+            <option value="INF23">INF23</option>
+            <option value="INF25">INF25</option>
+            <option value="INF26">INF26</option>
+            <option value="LAZ25">LAZ25</option>
+            <option value="LAZ26">LAZ26</option>
+            <option value="ADM23">ADM23</option>
+            <option value="ADM24">ADM24</option>
+            <option value="ADM25">ADM25</option>
+            <option value="ADM26">ADM26</option>
+            <option value="BIT23">BIT23</option>
+            <option value="BIT24">BIT24</option>
+            <option value="BIT25">BIT25</option>
+            <option value="BIT26">BIT26</option>
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Data do pedido</th>
+                <th>Foto</th>
+                <th>Nome</th>
+                <th>Matrícula</th>
+                <th>Curso</th>
+                <th>Turma</th>
+                <th>Responsável</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="admin-ativos-body">
+              <!-- preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Aba Rejeitados -->
+      <div id="admin-rejeitados-area" class="tab-area hidden">
+        <p class="subtitle">Pedidos que foram rejeitados ou carteiras desativadas. Use com cuidado a reaprovação e exclusão.</p>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Data do pedido</th>
+                <th>Foto</th>
+                <th>Nome</th>
+                <th>Matrícula</th>
+                <th>Curso</th>
+                <th>Turma</th>
+                <th>Responsável</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="admin-rejeitados-body">
+              <!-- preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Aba Roles (Administradores) -->
+      <div id="admin-roles-area" class="tab-area hidden">
+        <p class="subtitle">Gerencie quais servidores @ifsc.edu.br têm acesso ao painel administrativo.</p>
+        <p style="font-size:0.85rem;color:#666;">Será salvo como login@ifsc.edu.br. Apenas administradores conseguem alterar esta lista.</p>
+        
+        <form id="admin-roles-form" class="row-form">
+          <input type="text" id="admin-role-login" placeholder="login (ex: nome.sobrenome)" required />
+          <button type="submit" class="primary">Adicionar</button>
+        </form>
+        
+        <div class="table-wrapper" style="margin-top:1rem;">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Função</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="admin-roles-body">
+              <!-- preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
+    <div id="photo-modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <button id="photo-modal-close" class="link-button" type="button">Fechar</button>
+        <img id="photo-modal-img" alt="Foto 3x4" />
+      </div>
+    </div>
+
   </main>
 
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-storage-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="firebase-config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

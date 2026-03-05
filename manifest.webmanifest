@@ -1,6 +1,6 @@
 {
-  "name": "Carteira de Saída Antecipada - IFSC Garopaba",
-  "short_name": "Saída Antecipada Garopaba",
+  "name": "LiberaIFSC",
+  "short_name": "LiberaIFSC",
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#7aba05",
