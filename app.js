@@ -671,14 +671,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const emailLower = email.toLowerCase();
-      if (!emailLower.endsWith("@aluno.ifsc.edu.br")) {
-        alert("Informe um e-mail institucional válido (@aluno.ifsc.edu.br).");
+      if (!emailLower.endsWith("@aluno.ifsc.edu.br") && !emailLower.endsWith("@ifsc.edu.br")) {
+        alert("Informe um e-mail institucional válido (@aluno.ifsc.edu.br ou @ifsc.edu.br).");
         return;
       }
 
       const authEmailLower = String(currentUser.email || "").toLowerCase();
-      if (!authEmailLower.endsWith("@aluno.ifsc.edu.br")) {
-        alert("Use sua conta Google institucional (@aluno.ifsc.edu.br) para entrar.");
+      if (!authEmailLower.endsWith("@aluno.ifsc.edu.br") && !authEmailLower.endsWith("@ifsc.edu.br")) {
+        alert("Use sua conta Google institucional (@aluno.ifsc.edu.br ou @ifsc.edu.br) para entrar.");
         return;
       }
 
