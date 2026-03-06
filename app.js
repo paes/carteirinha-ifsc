@@ -1,5 +1,6 @@
 // =============================
 // Firebase (Auth + Firestore + Storage)
+// Versão: 1.0.7 - Fix Google Login Button - 2026-03-05 23:26
 // =============================
 
 const ADMIN_EMAILS = [
