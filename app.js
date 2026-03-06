@@ -136,9 +136,11 @@ async function compressImageFile(file, opts) {
     maxWidth = 720,
     maxHeight = 960,
     mimeType = "image/jpeg",
-    quality = 0.84,
-    maxBytes = 900 * 1024  // Aumentado para ~900KB
+    quality = 0.8,
+    maxBytes = 500 * 1024  // 500KB
   } = opts || {};
+
+  console.log(`🎯 Comprimindo imagem: ${(file.size / 1024).toFixed(1)}KB → alvo: ${(maxBytes / 1024).toFixed(0)}KB`);
 
   const dataUrl = await readFileAsDataURL(file);
   const img = new Image();
@@ -149,31 +151,79 @@ async function compressImageFile(file, opts) {
   img.src = dataUrl;
   await imgLoaded;
 
+  // Calcular dimensões ideais
   let { width, height } = img;
   const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
   width = Math.round(width * ratio);
   height = Math.round(height * ratio);
+
+  console.log(`📐 Dimensões originais: ${img.width}x${img.height} → ${width}x${height}`);
 
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas não suportado.");
+  
+  // Usar qualidade alta para desenhar
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.drawImage(img, 0, 0, width, height);
 
   const blobFrom = (q) =>
     new Promise((resolve) => canvas.toBlob(resolve, mimeType, q));
 
+  // Estratégia de compressão em múltiplos estágios
   let q = quality;
   let blob = await blobFrom(q);
   if (!blob) throw new Error("Falha ao gerar imagem.");
 
-  while (blob.size > maxBytes && q > 0.5) {
-    q = Math.max(0.5, q - 0.07);
+  console.log(`🔄 Tentativa inicial: qualidade ${(q * 100).toFixed(0)}% → ${(blob.size / 1024).toFixed(1)}KB`);
+
+  // Estágio 1: Reduz qualidade gradualmente
+  while (blob.size > maxBytes && q > 0.3) {
+    q = Math.max(0.3, q - 0.1);
     blob = await blobFrom(q);
     if (!blob) break;
+    console.log(`🔄 Reduzindo qualidade: ${(q * 100).toFixed(0)}% → ${(blob.size / 1024).toFixed(1)}KB`);
   }
 
+  // Estágio 2: Se ainda for grande, reduz dimensões
+  if (blob.size > maxBytes) {
+    console.log(`📏 Ainda muito grande, reduzindo dimensões...`);
+    
+    let newWidth = width;
+    let newHeight = height;
+    
+    // Reduzir dimensões em 10% a cada tentativa
+    while (blob.size > maxBytes && newWidth > 400 && newHeight > 540) {
+      newWidth = Math.round(newWidth * 0.9);
+      newHeight = Math.round(newHeight * 0.9);
+      
+      canvas.width = newWidth;
+      canvas.height = newHeight;
+      ctx.drawImage(img, 0, 0, newWidth, newHeight);
+      
+      blob = await blobFrom(0.7);
+      if (!blob) break;
+      
+      console.log(`📏 Reduzindo dimensões: ${newWidth}x${newHeight} → ${(blob.size / 1024).toFixed(1)}KB`);
+    }
+  }
+
+  // Estágio 3: Última tentativa com qualidade muito baixa
+  if (blob.size > maxBytes) {
+    console.log(`⚡ Última tentativa com qualidade mínima...`);
+    blob = await blobFrom(0.3);
+    if (!blob) throw new Error("Falha ao gerar imagem.");
+    console.log(`⚡ Qualidade mínima: ${(blob.size / 1024).toFixed(1)}KB`);
+  }
+
+  if (blob.size > maxBytes) {
+    throw new Error(`Não foi possível comprimir a imagem para menos de ${(maxBytes / 1024).toFixed(0)}KB. Tamanho final: ${(blob.size / 1024).toFixed(1)}KB. Por favor, use uma imagem menor.`);
+  }
+
+  console.log(`✅ Compressão concluída: ${(file.size / 1024).toFixed(1)}KB → ${(blob.size / 1024).toFixed(1)}KB (${((1 - blob.size / file.size) * 100).toFixed(1)}% de redução)`);
   return blob;
 }
 
@@ -697,11 +747,13 @@ document.addEventListener("DOMContentLoaded", () => {
             throw new Error("Formato inválido. Apenas JPG e PNG são permitidos.");
           }
           
+          console.log("📷 Processando foto para Firestore...");
+          
+          // Se o arquivo for grande, mostrar mensagem de compressão
           if (fotoFile.size > 500 * 1024) {
-            throw new Error("Arquivo muito grande. Máximo permitido: 500KB.");
+            console.log(`� Arquivo original: ${(fotoFile.size / 1024).toFixed(1)}KB - Iniciando compressão automática...`);
           }
           
-          console.log("📷 Processando foto para Firestore...");
           const blob = await compressImageFile(fotoFile, {
             maxWidth: 720,
             maxHeight: 960,
@@ -1396,8 +1448,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const fileInfo = document.getElementById("file-info");
   const fileName = document.getElementById("file-name");
   const fileSize = document.getElementById("file-size");
+  const compressionStatus = document.getElementById("compression-status");
 
-  if (fotoInput && fileInfo && fileName && fileSize) {
+  if (fotoInput && fileInfo && fileName && fileSize && compressionStatus) {
     fotoInput.addEventListener("change", (e) => {
       const file = e.target.files[0];
       
@@ -1419,16 +1472,16 @@ document.addEventListener("DOMContentLoaded", () => {
           // Verificar se está próximo ou acima do limite
           if (kb > 500) {
             sizeClass = "file-too-large";
-            sizeText += " ⚠️ ACIMA DO LIMITE";
+            sizeText += " (será comprimido automaticamente)";
           } else if (kb > 400) {
             sizeClass = "file-large";
-            sizeText += " ⚠️ PRÓXIMO DO LIMITE";
+            sizeText += " (pode ser comprimido)";
           }
         } else {
           const mb = (bytes / (1024 * 1024)).toFixed(1);
           sizeText = mb + " MB";
           sizeClass = "file-too-large";
-          sizeText += " ⚠️ MUITO GRANDE";
+          sizeText += " (será comprimido automaticamente)";
         }
         
         fileSize.textContent = sizeText;
@@ -1436,9 +1489,17 @@ document.addEventListener("DOMContentLoaded", () => {
         // Aplicar classe CSS correspondente
         fileInfo.className = "file-info " + sizeClass;
         fileInfo.style.display = "block";
+        
+        // Se for grande, mostrar que será comprimido
+        if (bytes > 500 * 1024) {
+          compressionStatus.style.display = "block";
+        } else {
+          compressionStatus.style.display = "none";
+        }
       } else {
         // Esconder informações se não houver arquivo
         fileInfo.style.display = "none";
+        compressionStatus.style.display = "none";
       }
     });
   }
