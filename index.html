@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LiberaIFSC</title>
 
-  <meta name="theme-color" content="#7aba05" />
+        <meta name="theme-color" content="#7aba05" />
 
   <!-- Manifest do PWA -->
   <link rel="manifest" href="manifest.webmanifest" />
@@ -14,7 +14,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
-  <!-- opcional, mas ok deixar tambﾃｩm -->
+  <!-- opcional, mas ok deixar também -->
   <link rel="icon" href="icons/favicon.ico" />
 
   <link rel="stylesheet" href="styles.css" />
@@ -29,7 +29,7 @@
       <div class="brand-login">
         <img
           src="icons/logo-v.png"
-          alt="Instituto Federal de Santa Catarina - Cﾃ｢mpus Garopaba"
+          alt="Instituto Federal de Santa Catarina - Câmpus Garopaba"
           class="logo-vertical"
         />
       </div>
@@ -46,20 +46,28 @@
       </button>
 
       <p id="login-error" class="error hidden">
-        Nﾃ｣o foi possﾃｭvel fazer login.
+        Não foi possível fazer login.
       </p>
     </section>
 
-    <!-- TELA INICIAL (Pﾃ鉄-LOGIN) -->
+    <!-- TELA INICIAL (PÓS-LOGIN) -->
     <section id="home-screen" class="screen hidden">
-      <h2>Olﾃ｡,</h2>
+      <div class="brand-login">
+        <img
+          src="icons/logo-v.png"
+          alt="Instituto Federal de Santa Catarina - Câmpus Garopaba"
+          class="logo-vertical"
+        />
+      </div>
+      
+      <h2>Olá,</h2>
       <p class="subtitle">
         Logado como <strong><span id="user-name"></span></strong>
         <br />
         <span id="user-email"></span>
       </p>
 
-      <!-- Banner quando admin estﾃ｡ vendo como aluno -->
+      <!-- Banner quando admin está vendo como aluno -->
       <div id="admin-student-banner" class="info-box hidden" style="margin-bottom:1rem;"></div>
 
       <button id="home-card-btn" type="button" class="primary">Abrir carteirinha</button>
@@ -75,10 +83,10 @@
       <button id="home-logout-btn" class="link-button" type="button">Sair</button>
     </section>
 
-    <!-- TELA DE SOLICITAﾃ�グ DE CARTEIRA (ESTUDANTE) -->
+    <!-- TELA DE SOLICITAÇÃO DE CARTEIRA (ESTUDANTE) -->
     <section id="request-screen" class="screen hidden">
       <header class="top-bar">
-        <h2>Solicitar Carteira de Saﾃｭda Antecipada</h2>
+        <h2>Solicitar Carteira de Saída Antecipada</h2>
         <button id="back-to-login" class="link-button" type="button">
           Voltar
         </button>
@@ -220,21 +228,21 @@
             >
               acessar assinador
             </a><br />
-            Formulﾃ｡rio institucional completo:
+            Formulário institucional completo:
             <a
               href="https://docs.google.com/forms/d/e/1FAIpQLSdc7TBD05qC_7_iKxxi9TDlT6W5kWzR3qtEQNR-lCkMWXa1lQ/viewform"
               target="_blank"
               rel="noopener noreferrer"
             >
-              abrir formulﾃ｡rio
+              abrir formulário
             </a>
           </p>
         </div>
 
         <label class="checkbox-line">
           <input type="checkbox" id="req-saida-autorizada" name="saida_autorizada" />
-          Li as informaﾃｧﾃｵes sobre a saﾃｭda antecipada e declaro que o responsﾃ｡vel
-          jﾃ｡ assinou (ou assinarﾃ｡) o termo no gov.br.
+          Li as informações sobre a saída antecipada e declaro que o responsável
+          já assinou (ou assinará) o termo no gov.br.
         </label>
 
         <label class="checkbox-line">
@@ -243,7 +251,7 @@
         </label>
 
         <button type="submit" class="primary">
-          Enviar pedido de carteira de saﾃｭda
+          Enviar pedido de carteira de saída
         </button>
       </form>
     </section>
@@ -252,7 +260,7 @@
     <section id="card-screen" class="screen hidden">
       <div class="card-rotated-wrapper">
 
-        <!-- Botﾃ｣o flutuante de saﾃｭda -->
+        <!-- Botão flutuante de saída -->
         <button id="logout-btn" class="logout-floating" type="button">
           Sair
         </button>
@@ -262,19 +270,19 @@
             <div class="card-header-left">
               <img
                 src="icons/logo-h.png"
-                alt="Instituto Federal de Santa Catarina - Cﾃ｢mpus Garopaba"
+                alt="Instituto Federal de Santa Catarina - Câmpus Garopaba"
                 class="logo-horizontal"
               />
             </div>
             <div class="card-header-right">
               <span class="header-line-small">
-                INSTITUTO FEDERAL DE EDUCAﾃ�グ, CIﾃ劾CIA E TECNOLOGIA
+                INSTITUTO FEDERAL DE EDUCAÇÃO, CIÊNCIA E TECNOLOGIA
               </span>
               <span class="header-line-medium">
-                SANTA CATARINA 窶� Cﾃ�PUS GAROPABA
+                SANTA CATARINA — CÂMPUS GAROPABA
               </span>
               <span class="header-line-big">
-                CARTEIRA DE AUTORIZAﾃ�グ DE SAﾃ好A ANTECIPADA
+                CARTEIRA DE AUTORIZAÇÃO DE SAÍDA ANTECIPADA
               </span>
             </div>
           </div>
@@ -317,35 +325,35 @@
                 </div>
               </div>
 
-              <!-- RESPONSﾃ〃EL + TELEFONE na mesma linha -->
+              <!-- RESPONSÁVEL + TELEFONE na mesma linha -->
               <div class="card-row">
                 <div class="card-field half">
-                  <span class="field-label">NOME DO RESPONSﾃ〃EL</span>
+                  <span class="field-label">NOME DO RESPONSÁVEL</span>
                   <span class="field-value" id="card-resp-nome"></span>
                 </div>
                 <div class="card-field half">
-                  <span class="field-label">TELEFONE DO RESPONSﾃ〃EL</span>
+                  <span class="field-label">TELEFONE DO RESPONSÁVEL</span>
                   <span class="field-value" id="card-resp-tel"></span>
                 </div>
               </div>
 
-              <!-- SITUAﾃ�グ em linha cheia (oculta no layout, mas mantida pro JS) -->
+              <!-- SITUAÇÃO em linha cheia (oculta no layout, mas mantida pro JS) -->
               <div class="card-field full status-field">
-                <span class="field-label">SITUAﾃ�グ / SAﾃ好A ANTECIPADA</span>
+                <span class="field-label">SITUAÇÃO / SAÍDA ANTECIPADA</span>
                 <span class="field-value" id="card-status-msg"></span>
               </div>
 
-              <!-- Observaﾃｧﾃｵes logo em seguida -->
+              <!-- Observações logo em seguida -->
               <div class="card-footer">
-                <span class="footer-title">Observaﾃｧﾃｵes</span>
+                <span class="footer-title">Observações</span>
                 <span class="footer-text">
-                  Vﾃ｡lida exclusivamente para saﾃｭda antecipada nas seguintes situaﾃｧﾃｵes:
-                  trabalhos acadﾃｪmicos fora de horﾃ｡rio de aula; troca de horﾃ｡rio de
-                  aulas; ausﾃｪncia eventual de professores(as); atendimentos
-                  extraclasse ou monitoria; finalizaﾃｧﾃ｣o antecipada de avaliaﾃｧﾃｵes.
+                  Válida exclusivamente para saída antecipada nas seguintes situações:
+                  trabalhos acadêmicos fora de horário de aula; troca de horário de
+                  aulas; ausência eventual de professores(as); atendimentos
+                  extraclasse ou monitoria; finalização antecipada de avaliações.
                 </span>
                 <span id="card-timestamp" class="card-timestamp" title="Clique para atualizar"></span>
-                <span class="timestamp-hint">Toque no horﾃ｡rio para atualizar</span>
+                <span class="timestamp-hint">Toque no horário para atualizar</span>
               </div>
             </div>
           </div>
