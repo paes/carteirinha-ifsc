@@ -1622,36 +1622,38 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 100);
   });
 
-  // OBSERVAÇÕES EXPANSIVAS - Sem modal
-  const observacoesTrigger = document.getElementById("observacoes-trigger");
-  const observacoesContent = document.getElementById("observacoes-content");
+  // OBSERVAÇÕES EXPANSIVAS - Sem modal (movido para DOMContentLoaded)
+  document.addEventListener("DOMContentLoaded", () => {
+    const observacoesTrigger = document.getElementById("observacoes-trigger");
+    const observacoesContent = document.getElementById("observacoes-content");
 
-  function toggleObservacoes() {
-    if (observacoesContent && observacoesTrigger) {
-      const isExpanded = observacoesContent.classList.contains("expanded");
-      
-      if (isExpanded) {
-        // Fechar
-        observacoesContent.classList.remove("expanded");
-        observacoesTrigger.classList.remove("expanded");
-      } else {
-        // Abrir
-        observacoesContent.classList.add("expanded");
-        observacoesTrigger.classList.add("expanded");
+    function toggleObservacoes() {
+      if (observacoesContent && observacoesTrigger) {
+        const isExpanded = observacoesContent.classList.contains("expanded");
+        
+        if (isExpanded) {
+          // Fechar
+          observacoesContent.classList.remove("expanded");
+          observacoesTrigger.classList.remove("expanded");
+        } else {
+          // Abrir
+          observacoesContent.classList.add("expanded");
+          observacoesTrigger.classList.add("expanded");
+        }
       }
     }
-  }
 
-  // Event listener para as observações
-  if (observacoesTrigger) {
-    observacoesTrigger.addEventListener("click", toggleObservacoes);
-    observacoesTrigger.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      toggleObservacoes();
-    });
-  }
+    // Event listener para as observações
+    if (observacoesTrigger) {
+      observacoesTrigger.addEventListener("click", toggleObservacoes);
+      observacoesTrigger.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        toggleObservacoes();
+      });
+    }
+  });
 
-  // FUNÇÃO DE EMERGÊNCIA - Fechar todos os modais
+  // FUNÇÃO DE EMERGÊNCIA - Simplificada (apenas fecha observações)
   function fecharTodosModais() {
     // Fechar observações expansivas
     const observacoesContent = document.getElementById("observacoes-content");
@@ -1661,7 +1663,7 @@ document.addEventListener("DOMContentLoaded", () => {
       observacoesTrigger.classList.remove("expanded");
     }
     
-    // Fechar modal de fotos
+    // Fechar modal de fotos (se existir)
     const photoModal = document.getElementById("photo-modal");
     if (photoModal) {
       photoModal.classList.add("hidden");
@@ -1670,7 +1672,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (photoModalImg) photoModalImg.src = "";
     }
     
-    console.log("🔓 Todos os modais e expansivos fechados (emergência)");
+    console.log("🔓 Elementos fechados (emergência)");
   }
 
   // Adicionar atalho duplo ESC para emergência
@@ -1684,126 +1686,6 @@ document.addEventListener("DOMContentLoaded", () => {
         fecharTodosModais();
         escapeCount = 0;
       }
-    }
-  });
-
-  // Botão de emergência visual (apenas quando logado)
-  function criarBotoesEmergencia() {
-    // Criar botão de emergência se não existir
-    if (!document.getElementById("emergency-close")) {
-      const emergencyBtn = document.createElement("button");
-      emergencyBtn.id = "emergency-close";
-      emergencyBtn.innerHTML = "🔓 FECHAR";
-      emergencyBtn.style.cssText = `
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        z-index: 999999;
-        background: #f44336;
-        color: white;
-        border: none;
-        padding: 8px 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: bold;
-        display: none;
-        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
-        animation: pulse 1.5s infinite;
-      `;
-      emergencyBtn.addEventListener("click", fecharTodosModais);
-      emergencyBtn.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        fecharTodosModais();
-      });
-      document.body.appendChild(emergencyBtn);
-      
-      // Adicionar animação CSS
-      const style = document.createElement('style');
-      style.textContent = `
-        @keyframes pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-          100% { transform: scale(1); }
-        }
-      `;
-      document.head.appendChild(style);
-      
-      // Mostrar botão se algum modal estiver aberto
-      const checkModals = setInterval(() => {
-        const observacoesModal = document.getElementById("observacoes-modal");
-        const photoModal = document.getElementById("photo-modal");
-        const observacoesContent = document.getElementById("observacoes-content");
-        const anyModalOpen = (observacoesContent && observacoesContent.classList.contains("expanded")) ||
-                            (photoModal && !photoModal.classList.contains("hidden"));
-        emergencyBtn.style.display = anyModalOpen ? "block" : "none";
-      }, 300);
-    }
-    
-    // Adicionar gesto de toque duplo para emergência em celular
-    let touchCount = 0;
-    let touchTimer = null;
-    
-    document.addEventListener("touchstart", (e) => {
-      touchCount++;
-      
-      if (touchTimer) clearTimeout(touchTimer);
-      
-      touchTimer = setTimeout(() => {
-        touchCount = 0;
-      }, 500);
-      
-      // Toque duplo na tela fecha tudo
-      if (touchCount >= 2) {
-        fecharTodosModais();
-        touchCount = 0;
-        clearTimeout(touchTimer);
-      }
-    });
-    
-    // Adicionar botão flutuante sempre visível no celular
-    if (window.innerWidth <= 768) {
-      const floatingBtn = document.createElement("button");
-      floatingBtn.id = "floating-emergency";
-      floatingBtn.innerHTML = "🔓";
-      floatingBtn.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 999998;
-        background: #7aba05;
-        color: white;
-        border: none;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 12px rgba(122, 186, 5, 0.4);
-      `;
-      floatingBtn.addEventListener("click", fecharTodosModais);
-      floatingBtn.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        fecharTodosModais();
-      });
-      document.body.appendChild(floatingBtn);
-    }
-  }
-
-  // Verificar se usuário está logado antes de criar botões
-  fb.auth.onAuthStateChanged((user) => {
-    if (user) {
-      // Usuário logado - criar botões de emergência
-      setTimeout(criarBotoesEmergencia, 1000);
-    } else {
-      // Usuário deslogado - remover botões de emergência
-      const emergencyBtn = document.getElementById("emergency-close");
-      const floatingBtn = document.getElementById("floating-emergency");
-      if (emergencyBtn) emergencyBtn.remove();
-      if (floatingBtn) floatingBtn.remove();
     }
   });
 
