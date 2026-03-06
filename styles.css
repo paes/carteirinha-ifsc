@@ -628,43 +628,92 @@ button.primary:active {
   color: #444;
 }
 
-/* Prevenir rotação e forçar retrato */
+/* Prevenir rotação e forçar retrato - BLOQUEIO FORTE */
 @media screen and (orientation: landscape) {
   body {
-    transform: rotate(-90deg);
+    transform: rotate(-90deg) scale(1.2);
     transform-origin: left top;
     position: absolute;
     top: 100%;
     left: 0;
     width: 100vh;
     height: 100vw;
+    overflow: hidden;
   }
   
-  /* Mostrar mensagem para orientar o dispositivo */
+  /* Mostrar mensagem de orientação em tela cheia */
   body::before {
-    content: "Por favor, gire seu dispositivo para retrato (vertical)";
+    content: "📱 POR FAVOR, GIRE SEU CELULAR PARA MODO VERTICAL (RETRATO)";
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.9);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
     color: white;
-    padding: 20px;
-    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    z-index: 9999;
-    font-size: 1.2rem;
+    z-index: 99999;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 20px;
+    line-height: 1.5;
+    animation: blink 1s infinite;
   }
+  
+  /* Esconder todo o conteúdo quando em landscape */
+  body > * {
+    display: none !important;
+  }
+  
+  /* Mostrar apenas a mensagem de orientação */
+  body::before {
+    display: flex !important;
+  }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+/* Forçar retrato no HTML também */
+html {
+  -webkit-orientation: portrait;
+  -moz-orientation: portrait;
+  -ms-orientation: portrait;
 }
 
 /* Melhorias para retrato */
 @media screen and (orientation: portrait) {
   body {
     overflow-x: hidden;
+    overflow-y: auto;
+    position: relative;
+    width: 100vw;
+    height: 100vh;
   }
   
   #app {
     min-height: 100vh;
+    width: 100%;
+  }
+  
+  /* Prevenir zoom em dispositivos móveis */
+  @media (max-width: 768px) {
+    body {
+      touch-action: pan-y pan-x;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    input, textarea, select {
+      -webkit-user-select: auto;
+      user-select: auto;
+    }
   }
 }
 

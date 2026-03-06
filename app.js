@@ -1443,6 +1443,52 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // BLOQUEIO DE ORIENTAÇÃO FORTE
+  function lockOrientation() {
+    // Tentar bloquear orientação via Screen Orientation API
+    if (screen && screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('portrait').catch(err => {
+        console.log('⚠️ Não foi possível bloquear orientação:', err);
+      });
+    }
+    
+    // Alternativas para diferentes navegadores
+    if (screen && screen.lockOrientation) {
+      screen.lockOrientation('portrait');
+    }
+    
+    if (window.screen && window.screen.lockOrientation) {
+      window.screen.lockOrientation('portrait');
+    }
+  }
+
+  // Bloquear orientação ao carregar
+  lockOrientation();
+  
+  // Bloquear orientação quando a tela fica visível
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      lockOrientation();
+    }
+  });
+  
+  // Bloquear orientação quando o foco retorna
+  window.addEventListener('focus', lockOrientation);
+  
+  // Prevenir rotação via eventos de orientação
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+      if (window.orientation === 90 || window.orientation === -90) {
+        // Forçar volta ao retrato
+        lockOrientation();
+        // Mostrar alerta
+        if (confirm('📱 Por favor, mantenha seu celular na vertical (retrato) para usar o sistema.')) {
+          lockOrientation();
+        }
+      }
+    }, 100);
+  });
+
   // EXIBIR INFORMAÇÕES DO ARQUIVO DE FOTO
   const fotoInput = document.getElementById("req-foto");
   const fileInfo = document.getElementById("file-info");
