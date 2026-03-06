@@ -1650,7 +1650,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const fileSize = document.getElementById("file-size");
   const compressionStatus = document.getElementById("compression-status");
 
-  // FILTRAGEM DE TURMAS POR CURSO (movido para DOMContentLoaded)
+  // FILTRAGEM DE TURMAS POR CURSO (removida - agora permite qualquer combinação)
   document.addEventListener("DOMContentLoaded", () => {
     const cursoSelect = document.getElementById("req-curso");
     const turmaSelect = document.getElementById("req-turma");
@@ -1659,50 +1659,43 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log('cursoSelect:', cursoSelect);
     console.log('turmaSelect:', turmaSelect);
 
-    // Mapeamento de cursos para turmas
-    const turmasPorCurso = {
-      "Curso Técnico Integrado em Administração": ["ADM24", "ADM25", "ADM26"],
-      "Curso Técnico Integrado em Informática": ["INF24", "INF25", "INF26"],
-      "Curso Técnico Integrado em Lazer": ["LAZ25", "LAZ26"],
-      "Curso Técnico Concomitante em Biotecnologia": ["BIT24", "BIT25", "BIT26"]
-    };
+    // Lista completa de todas as turmas disponíveis
+    const todasTurmas = [
+      "ADM24", "ADM25", "ADM26",
+      "INF24", "INF25", "INF26", 
+      "LAZ25", "LAZ26",
+      "BIT24", "BIT25", "BIT26"
+    ];
 
-    function updateTurmaOptions() {
-      const cursoSelecionado = cursoSelect.value;
-      console.log('🎯 Curso selecionado:', cursoSelecionado);
-      
+    function carregarTodasTurmas() {
       // Limpar opções atuais
       turmaSelect.innerHTML = '<option value="">Selecione...</option>';
       
-      if (cursoSelecionado && turmasPorCurso[cursoSelecionado]) {
-        console.log('📋 Turmas disponíveis:', turmasPorCurso[cursoSelecionado]);
-        // Adicionar turmas correspondentes ao curso
-        turmasPorCurso[cursoSelecionado].forEach(turma => {
-          const option = document.createElement("option");
-          option.value = turma;
-          option.textContent = turma;
-          turmaSelect.appendChild(option);
-        });
-        turmaSelect.disabled = false;
-        console.log('✅ Turmas carregadas e campo habilitado');
-      } else {
-        // Se não houver curso selecionado, desabilitar turma
-        turmaSelect.innerHTML = '<option value="">Selecione um curso primeiro...</option>';
-        turmaSelect.disabled = true;
-        console.log('⚠️ Nenhum curso selecionado, turma desabilitada');
-      }
+      // Adicionar todas as turmas disponíveis
+      todasTurmas.forEach(turma => {
+        const option = document.createElement("option");
+        option.value = turma;
+        option.textContent = turma;
+        turmaSelect.appendChild(option);
+      });
+      
+      // Habilitar campo de turma
+      turmaSelect.disabled = false;
+      console.log('✅ Todas as turmas carregadas - qualquer combinação permitida');
     }
 
     if (cursoSelect && turmaSelect) {
+      // Carregar todas as turmas ao carregar a página
+      carregarTodasTurmas();
+      
+      // Manter evento de change no curso apenas para log, sem filtragem
       cursoSelect.addEventListener("change", () => {
-        console.log('🔄 Evento change disparado no curso');
-        updateTurmaOptions();
+        const cursoSelecionado = cursoSelect.value;
+        console.log('🎯 Curso selecionado:', cursoSelecionado);
+        console.log('📋 Turma pode ser qualquer uma - sem restrição');
       });
       
-      // Desabilitar turma inicialmente
-      turmaSelect.disabled = true;
-      
-      console.log('🎯 Sistema de filtragem de turmas inicializado com sucesso');
+      console.log('🎯 Sistema de turmas inicializado - combinação livre');
     } else {
       console.error('❌ Erro: Elementos de curso/turma não encontrados!');
     }
