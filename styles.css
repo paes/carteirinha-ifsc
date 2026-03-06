@@ -75,7 +75,9 @@ main#app {
 
 #home-card-btn,
 #home-request-btn,
-#home-admin-btn {
+#home-admin-btn,
+#home-view-as-student-btn,
+#home-back-admin-role-btn {
   width: 100%;
 }
 
