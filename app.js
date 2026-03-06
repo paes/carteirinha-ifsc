@@ -1368,4 +1368,26 @@ document.addEventListener("DOMContentLoaded", () => {
     await originalRenderAdminPanel();
     setAdminTab("pendentes");
   };
+
+  // BOTÃO DE COMPARTILHAR NO WHATSAPP
+  const shareLinksBtn = document.getElementById("share-links-btn");
+  if (shareLinksBtn) {
+    shareLinksBtn.addEventListener("click", () => {
+      const mensagem = encodeURIComponent(
+        "📋 *Links úteis para Carteira de Saída Antecipada - IFSC Câmpus Garopaba*\n\n" +
+        "📄 *Modelo de autorização em PDF:*\n" +
+        "https://drive.google.com/file/d/1quMZtj1anlwpyKQMkZf6BSiIJJZBwkDA/view\n\n" +
+        "✍️ *Assinador gov.br:*\n" +
+        "https://assinador.iti.br/\n\n" +
+        "📝 *Formulário institucional completo:*\n" +
+        "https://docs.google.com/forms/d/e/1FAIpQLSdc7TBD05qC_7_iKxxi9TDlT6W5kWzR3qtEQNR-lCkMWXa1lQ/viewform\n\n" +
+        "📱 *Sistema LiberaIFSC:*\n" +
+        "https://carteirinha-ifsc.netlify.app/\n\n" +
+        "_Compartilhado pelo sistema LiberaIFSC_"
+      );
+      
+      const url = `https://wa.me/?text=${mensagem}`;
+      window.open(url, '_blank');
+    });
+  }
 });

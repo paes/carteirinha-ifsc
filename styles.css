@@ -196,7 +196,26 @@ button {
   cursor: pointer;
 }
 
-button.primary {
+button.secondary {
+  background-color: #25d366;
+  color: white;
+  border: none;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.secondary:hover {
+  background-color: #128c7e;
+}
+
+.secondary:active {
+  background-color: #075e54;
+}
+
+.primary {
   background: var(--ifsc-verde);
   color: #ffffff;
   font-weight: 600;
