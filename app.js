@@ -1390,4 +1390,56 @@ document.addEventListener("DOMContentLoaded", () => {
       window.open(url, '_blank');
     });
   }
+
+  // EXIBIR INFORMAÇÕES DO ARQUIVO DE FOTO
+  const fotoInput = document.getElementById("req-foto");
+  const fileInfo = document.getElementById("file-info");
+  const fileName = document.getElementById("file-name");
+  const fileSize = document.getElementById("file-size");
+
+  if (fotoInput && fileInfo && fileName && fileSize) {
+    fotoInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      
+      if (file) {
+        // Exibir informações do arquivo
+        fileName.textContent = file.name;
+        
+        // Formatar tamanho do arquivo
+        const bytes = file.size;
+        let sizeText;
+        let sizeClass = "file-ok";
+        
+        if (bytes < 1024) {
+          sizeText = bytes + " B";
+        } else if (bytes < 1024 * 1024) {
+          const kb = (bytes / 1024).toFixed(1);
+          sizeText = kb + " KB";
+          
+          // Verificar se está próximo ou acima do limite
+          if (kb > 500) {
+            sizeClass = "file-too-large";
+            sizeText += " ⚠️ ACIMA DO LIMITE";
+          } else if (kb > 400) {
+            sizeClass = "file-large";
+            sizeText += " ⚠️ PRÓXIMO DO LIMITE";
+          }
+        } else {
+          const mb = (bytes / (1024 * 1024)).toFixed(1);
+          sizeText = mb + " MB";
+          sizeClass = "file-too-large";
+          sizeText += " ⚠️ MUITO GRANDE";
+        }
+        
+        fileSize.textContent = sizeText;
+        
+        // Aplicar classe CSS correspondente
+        fileInfo.className = "file-info " + sizeClass;
+        fileInfo.style.display = "block";
+      } else {
+        // Esconder informações se não houver arquivo
+        fileInfo.style.display = "none";
+      }
+    });
+  }
 });
