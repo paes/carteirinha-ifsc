@@ -603,6 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // BOTÃO GOOGLE LOGIN
   if (googleLoginBtn) {
     googleLoginBtn.addEventListener("click", async () => {
       if (loginError) loginError.classList.add("hidden");
