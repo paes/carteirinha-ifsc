@@ -1671,6 +1671,73 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // FUNÇÃO DE EMERGÊNCIA - Fechar todos os modais
+  function fecharTodosModais() {
+    // Fechar modal de observações
+    if (observacoesModal) {
+      observacoesModal.classList.add("hidden");
+      observacoesModal.style.display = "none";
+    }
+    
+    // Fechar modal de fotos
+    const photoModal = document.getElementById("photo-modal");
+    if (photoModal) {
+      photoModal.classList.add("hidden");
+      photoModal.style.display = "none";
+      const photoModalImg = document.getElementById("photo-modal-img");
+      if (photoModalImg) photoModalImg.src = "";
+    }
+    
+    console.log("🔓 Todos os modais fechados (emergência)");
+  }
+
+  // Adicionar atalho duplo ESC para emergência
+  let escapeCount = 0;
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      escapeCount++;
+      setTimeout(() => escapeCount--, 1000);
+      
+      if (escapeCount >= 2) {
+        fecharTodosModais();
+        escapeCount = 0;
+      }
+    }
+  });
+
+  // Botão de emergência visual (se precisar)
+  setTimeout(() => {
+    // Criar botão de emergência se não existir
+    if (!document.getElementById("emergency-close")) {
+      const emergencyBtn = document.createElement("button");
+      emergencyBtn.id = "emergency-close";
+      emergencyBtn.innerHTML = "🔓 Fechar Tudo";
+      emergencyBtn.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 999999;
+        background: #f44336;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
+        display: none;
+      `;
+      emergencyBtn.addEventListener("click", fecharTodosModais);
+      document.body.appendChild(emergencyBtn);
+      
+      // Mostrar botão se algum modal estiver aberto
+      const checkModals = setInterval(() => {
+        const anyModalOpen = !observacoesModal?.classList.contains("hidden") || 
+                            !document.getElementById("photo-modal")?.classList.contains("hidden");
+        emergencyBtn.style.display = anyModalOpen ? "block" : "none";
+      }, 500);
+    }
+  }, 1000);
+
   // EXIBIR INFORMAÇÕES DO ARQUIVO DE FOTO
   const fotoInput = document.getElementById("req-foto");
   const fileInfo = document.getElementById("file-info");
