@@ -1462,25 +1462,24 @@ document.addEventListener("DOMContentLoaded", () => {
   if (shareLinksBtn) {
     shareLinksBtn.addEventListener("click", () => {
       const mensagem = encodeURIComponent(
-        "� *Olá! Preciso da sua ajuda para autorizar minha saída antecipada do IFSC*\n\n" +
-        "🎓 *Seu filho(a) solicitou a Carteira de Saída Antecipada do IFSC Câmpus Garopaba*\n\n" +
-        "� *PASSO A PASSO - Como autorizar:*\n\n" +
-        "📖 *1º PASSO - Leia as informações:*\n" +
-        "📄 Apresentação do projeto e regras: https://drive.google.com/file/d/11-FZhZj30aDnEdbRhd59ikbi1NcMTgPh/view?usp=sharing\n\n" +
-        "📝 *2º PASSO - Preencha o formulário:*\n" +
-        "📋 Formulário institucional: https://docs.google.com/forms/d/e/1FAIpQLSdc7TBD05qC_7_iKxxi9TDlT6W5kWzR3qtEQNR-lCkMWXa1lQ/viewform\n\n" +
-        "� *3º PASSO - Baixe e assine o termo:*\n" +
-        "📄 Termo de autorização (PDF): https://drive.google.com/file/d/1TgMmb-GQ7A3z8_xq96yWxYIdhZ_fSBz9/view?usp=sharing\n" +
-        "✍️ Assine digitalmente em: https://assinador.iti.br/\n\n" +
-        "📎 *4º PASSO - Anexe o termo assinado:*\n" +
-        "📎 Volte ao formulário do 2º passo e anexe o PDF que você assinou\n\n" +
-        "✅ *5º PASSO - Confirme o envio:*\n" +
-        "📱 Após anexar, envie uma mensagem para seu filho(a) confirmando que enviou o formulário\n\n" +
-        "📱 *Sistema do IFSC:*\n" +
+        "Ola. Este e o passo a passo para requerer a autorizacao de saida antecipada do IFSC\n\n" +
+        "PASSO A PASSO - Como autorizar:\n\n" +
+        "1 PASSO - Leia as informacoes:\n" +
+        "Apresentacao do projeto e regras: https://drive.google.com/file/d/11-FZhZj30aDnEdbRhd59ikbi1NcMTgPh/view?usp=sharing\n\n" +
+        "2 PASSO - Preencha o formulario:\n" +
+        "Formulario institucional: https://docs.google.com/forms/d/e/1FAIpQLSdc7TBD05qC_7_iKxxi9TDlT6W5kWzR3qtEQNR-lCkMWXa1lQ/viewform\n\n" +
+        "3 PASSO - Baixe e assine o termo:\n" +
+        "Termo de autorizacao (PDF): https://drive.google.com/file/d/1TgMmb-GQ7A3z8_xq96yWxYIdhZ_fSBz9/view?usp=sharing\n" +
+        "Assine digitalmente em: https://assinador.iti.br/\n\n" +
+        "4 PASSO - Anexe o termo assinado:\n" +
+        "Volte ao formulario do 2 passo e anexe o PDF que voce assinou\n\n" +
+        "5 PASSO - Confirme o envio:\n" +
+        "Apos anexar, envie uma mensagem confirmando que enviou o formulario\n\n" +
+        "Sistema do IFSC:\n" +
         "https://carteirinha-ifsc.netlify.app/\n\n" +
-        "🆘️ *Dúvidas?*\n" +
-        "📞 Entre em contato com a coordenação do câmpus Garopaba\n\n" +
-        "_Mensagem gerada automaticamente pelo sistema LiberaIFSC_"
+        "Duvidas?\n" +
+        "Entre em contato com a coordenacao do campus Garopaba\n\n" +
+        "Mensagem gerada automaticamente pelo sistema LiberaIFSC"
       );
       
       const url = `https://wa.me/?text=${mensagem}`;
@@ -1691,6 +1690,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // Habilitar campo de turma
       turmaSelect.disabled = false;
       console.log('✅ Todas as turmas carregadas - qualquer combinação permitida');
+      console.log('📋 Turmas disponíveis:', todasTurmas.join(', '));
+      console.log('🚫 SEM RESTRIÇÃO - Curso e Turma são independentes!');
     }
 
     if (cursoSelect && turmaSelect) {
