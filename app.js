@@ -1454,6 +1454,84 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // CONTROLE DO RODAPÉ NA CARTEIRINHA
+  function controlarRodapeNaCarteirinha(mostrarCarteirinha) {
+    const footer = document.querySelector('.app-footer');
+    const cardScreen = document.getElementById('card-screen');
+    
+    if (!footer || !cardScreen) return;
+    
+    if (mostrarCarteirinha) {
+      // Ocultar rodapé completamente
+      footer.style.display = 'none';
+      footer.style.visibility = 'hidden';
+      footer.style.opacity = '0';
+      footer.style.height = '0';
+      footer.style.margin = '0';
+      footer.style.padding = '0';
+      footer.style.position = 'absolute';
+      footer.style.zIndex = '-9999';
+      
+      // Adicionar classe ao body para controle CSS
+      document.body.classList.add('showing-card');
+      
+      console.log('👣 Rodapé ocultado para carteirinha');
+    } else {
+      // Restaurar rodapé
+      footer.style.display = 'block';
+      footer.style.visibility = 'visible';
+      footer.style.opacity = '1';
+      footer.style.height = 'auto';
+      footer.style.margin = '';
+      footer.style.padding = '';
+      footer.style.position = '';
+      footer.style.zIndex = '';
+      
+      // Remover classe do body
+      document.body.classList.remove('showing-card');
+      
+      console.log('👣 Rodapé restaurado');
+    }
+  }
+
+  // Sobrescrever função showScreen para controlar rodapé
+  const originalShowScreen = window.showScreen;
+  window.showScreen = function(screen) {
+    // Chamar função original primeiro
+    originalShowScreen(screen);
+    
+    // Controlar rodapé baseado na tela
+    const isCardScreen = screen && screen.id === 'card-screen';
+    controlarRodapeNaCarteirinha(isCardScreen);
+  };
+
+  // Também controlar quando a carteirinha for mostrada diretamente
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+        const cardScreen = document.getElementById('card-screen');
+        if (cardScreen) {
+          const isHidden = cardScreen.classList.contains('hidden');
+          controlarRodapeNaCarteirinha(!isHidden);
+        }
+      }
+    });
+  });
+
+  // Observar mudanças na classe do card-screen
+  const cardScreenElement = document.getElementById('card-screen');
+  if (cardScreenElement) {
+    observer.observe(cardScreenElement, { attributes: true });
+  }
+
+  // Controle inicial ao carregar
+  setTimeout(() => {
+    const currentCardScreen = document.getElementById('card-screen');
+    if (currentCardScreen && !currentCardScreen.classList.contains('hidden')) {
+      controlarRodapeNaCarteirinha(true);
+    }
+  }, 100);
+
   // BLOQUEIO DE ORIENTAÇÃO FORTE
   function lockOrientation() {
     // Tentar bloquear orientação via Screen Orientation API

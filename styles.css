@@ -717,9 +717,31 @@ html {
   }
 }
 
-/* Ocultar rodapé na tela da carteirinha */
-#card-screen ~ .app-footer {
-  display: none;
+/* Ocultar rodapé na tela da carteirinha - MÚLTIPLOS SELETORES FORTES */
+#card-screen ~ .app-footer,
+#card-screen + .app-footer,
+body:has(#card-screen:not(.hidden)) .app-footer,
+body.showing-card .app-footer,
+#card-screen:not(.hidden) ~ .app-footer,
+#card-screen:not(.hidden) + .app-footer {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Quando qualquer tela exceto a carteirinha estiver ativa, mostrar rodapé */
+#card-screen.hidden ~ .app-footer,
+#login-screen:not(.hidden) ~ .app-footer,
+#home-screen:not(.hidden) ~ .app-footer,
+#request-screen:not(.hidden) ~ .app-footer,
+#admin-screen:not(.hidden) ~ .app-footer {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: auto !important;
 }
 
 .card-timestamp-overlay {
