@@ -395,15 +395,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const cardTimestamp = document.getElementById("card-timestamp");
     if (cardTimestamp) {
       const now = new Date();
-      const dataHora = now.toLocaleString("pt-BR", {
+      // Formato curto: DD MMM AA
+      const dataCurta = now.toLocaleDateString("pt-BR", {
         day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-      });
-      cardTimestamp.textContent = `Válido em: ${dataHora}`;
+        month: "short",
+        year: "2-digit"
+      }).replace(/\./g, "").replace(/de /g, "").toUpperCase();
+      
+      cardTimestamp.textContent = `VÁLIDO ATÉ: ${dataCurta}`;
     }
   }
 
