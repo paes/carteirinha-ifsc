@@ -350,12 +350,9 @@
 
                 <!-- Observações logo em seguida -->
                 <div class="card-footer">
-                  <span class="footer-title">Observações</span>
-                  <span class="footer-text">
-                    Válida exclusivamente para saída antecipada nas seguintes situações:
-                    trabalhos acadêmicos fora de horário de aula; troca de horário de
-                    aulas; ausência eventual de professores(as); atendimentos
-                    extraclasse ou monitoria; finalização antecipada de avaliações.
+                  <span class="footer-title clickable" id="observacoes-trigger">Observações</span>
+                  <span class="footer-text clickable" id="observacoes-trigger-text">
+                    Válida exclusivamente para saída antecipada. Clique para ver situações...
                   </span>
                   <span id="card-timestamp" class="card-timestamp"></span>
                 </div>
@@ -519,6 +516,39 @@
     </div>
 
   </main>
+
+  <!-- Modal de Observações -->
+  <div id="observacoes-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content observacoes-modal-content">
+      <button id="observacoes-modal-close" class="link-button" type="button">Fechar</button>
+      <h3>📋 Observações - Uso da Carteira de Saída</h3>
+      <div class="observacoes-content">
+        <h4>🎯 Situações Autorizadas para Saída Antecipada:</h4>
+        <ul>
+          <li>✅ <strong>Trabalhos acadêmicos</strong> fora de horário de aula</li>
+          <li>✅ <strong>Troca de horário</strong> de aulas</li>
+          <li>✅ <strong>Ausência eventual</strong> de professores(as)</li>
+          <li>✅ <strong>Atendimentos extraclasse</strong> ou monitoria</li>
+          <li>✅ <strong>Finalização antecipada</strong> de avaliações</li>
+        </ul>
+        
+        <h4>⚠️ Importante:</h4>
+        <ul>
+          <li>📍 A carteira é <strong>válida exclusivamente</strong> para as situações acima</li>
+          <li>🕒 O aluno deve retornar ao câmpus no mesmo dia</li>
+          <li>📨 A autorização deve ser previamente assinada pelo responsável</li>
+          <li>👮‍♂️ Apresente esta carteira ao vigia na saída e entrada</li>
+        </ul>
+        
+        <h4>📞 Contatos para Dúvidas:</h4>
+        <ul>
+          <li>🏢 Coordenação do Câmpus Garopaba</li>
+          <li>📧 E-mail: garopaba@ifsc.edu.br</li>
+          <li>📱 Telefone: (48) 3281-9600</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>

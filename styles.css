@@ -714,6 +714,58 @@ html {
   -ms-orientation: portrait;
 }
 
+/* Estilo para elementos clicáveis das observações */
+.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+.clickable:hover {
+  color: #d32f2f;
+  text-decoration: solid;
+}
+
+/* Modal de observações */
+.observacoes-modal-content {
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.observacoes-content h3 {
+  color: #7aba05;
+  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+.observacoes-content h4 {
+  color: #333;
+  margin: 1.5rem 0 0.8rem 0;
+  font-size: 1.1rem;
+  border-bottom: 2px solid #7aba05;
+  padding-bottom: 0.3rem;
+}
+
+.observacoes-content ul {
+  margin: 0.8rem 0;
+  padding-left: 1.5rem;
+}
+
+.observacoes-content li {
+  margin: 0.5rem 0;
+  line-height: 1.4;
+  font-size: 0.95rem;
+}
+
+.observacoes-content strong {
+  color: #7aba05;
+}
+
 /* Melhorias para retrato */
 @media screen and (orientation: portrait) {
   body {
@@ -780,13 +832,13 @@ body.showing-card .app-footer,
   color: #d32f2f;
   font-family: monospace;
   font-weight: bold;
-  background: rgba(255, 255, 255, 0.85); /* Mais transparência */
+  background: rgba(255, 255, 255, 0.7); /* Mais transparência */
   padding: 4px 8px;
   border-radius: 4px;
   z-index: 10;
   transform: rotate(-3deg);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  border: 1px solid rgba(211, 47, 47, 0.3);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border: 1px solid rgba(211, 47, 47, 0.2);
   backdrop-filter: blur(2px); /* Efeito de vidro fosco */
 }
 

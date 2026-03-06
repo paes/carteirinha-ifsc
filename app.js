@@ -402,7 +402,7 @@ document.addEventListener("DOMContentLoaded", () => {
         year: "2-digit"
       }).replace(/\./g, "").replace(/de /g, "").toUpperCase();
       
-      cardTimestamp.textContent = `VÁLIDO ATÉ: ${dataCurta}`;
+      cardTimestamp.textContent = `VÁLIDO PARA: ${dataCurta}`;
     }
   }
 
@@ -1594,6 +1594,55 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     }, 100);
+  });
+
+  // MODAL DE OBSERVAÇÕES
+  const observacoesTrigger = document.getElementById("observacoes-trigger");
+  const observacoesTriggerText = document.getElementById("observacoes-trigger-text");
+  const observacoesModal = document.getElementById("observacoes-modal");
+  const observacoesModalClose = document.getElementById("observacoes-modal-close");
+
+  function openObservacoesModal() {
+    if (observacoesModal) {
+      observacoesModal.classList.remove("hidden");
+      observacoesModal.style.display = "flex";
+    }
+  }
+
+  function closeObservacoesModal() {
+    if (observacoesModal) {
+      observacoesModal.classList.add("hidden");
+      observacoesModal.style.display = "none";
+    }
+  }
+
+  // Event listeners para o modal de observações
+  if (observacoesTrigger) {
+    observacoesTrigger.addEventListener("click", openObservacoesModal);
+  }
+  
+  if (observacoesTriggerText) {
+    observacoesTriggerText.addEventListener("click", openObservacoesModal);
+  }
+
+  if (observacoesModalClose) {
+    observacoesModalClose.addEventListener("click", closeObservacoesModal);
+  }
+
+  // Fechar modal ao clicar fora
+  if (observacoesModal) {
+    observacoesModal.addEventListener("click", (e) => {
+      if (e.target === observacoesModal) {
+        closeObservacoesModal();
+      }
+    });
+  }
+
+  // Fechar modal com ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !observacoesModal?.classList.contains("hidden")) {
+      closeObservacoesModal();
+    }
   });
 
   // EXIBIR INFORMAÇÕES DO ARQUIVO DE FOTO
