@@ -1061,30 +1061,77 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Configurar event listeners do modal
-  document.addEventListener("DOMContentLoaded", () => {
+  function setupModalListeners() {
     const photoModalClose = document.getElementById("photo-modal-close");
     const photoModal = document.getElementById("photo-modal");
 
+    console.log('🔧 Configurando listeners do modal...');
+    console.log('photoModalClose:', photoModalClose);
+    console.log('photoModal:', photoModal);
+
     if (photoModalClose) {
-      photoModalClose.addEventListener("click", closePhotoModal);
+      // Remover listeners antigos para evitar duplicação
+      photoModalClose.removeEventListener('click', closePhotoModal);
+      
+      // Adicionar listener novo
+      photoModalClose.addEventListener("click", (e) => {
+        console.log('🖱️ Botão Fechar clicado!');
+        e.preventDefault();
+        e.stopPropagation();
+        closePhotoModal();
+      });
+      
+      console.log('✅ Listener do botão Fechar configurado');
+    } else {
+      console.error('❌ Botão Fechar não encontrado!');
     }
 
     // Fechar modal ao clicar fora
     if (photoModal) {
-      photoModal.addEventListener("click", (e) => {
+      // Remover listener antigo
+      photoModal.removeEventListener('click', (e) => {
         if (e.target === photoModal) {
           closePhotoModal();
         }
       });
+      
+      // Adicionar listener novo
+      photoModal.addEventListener("click", (e) => {
+        if (e.target === photoModal) {
+          console.log('🖱️ Clique fora do modal detectado');
+          closePhotoModal();
+        }
+      });
+      
+      console.log('✅ Listener de clique fora configurado');
     }
 
     // Fechar modal com ESC
-    document.addEventListener("keydown", (e) => {
+    document.removeEventListener('keydown', (e) => {
       if (e.key === "Escape" && !photoModal?.classList.contains("hidden")) {
         closePhotoModal();
       }
     });
-  });
+    
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !photoModal?.classList.contains("hidden")) {
+        console.log('⌨️ Tecla ESC pressionada');
+        closePhotoModal();
+      }
+    });
+    
+    console.log('✅ Listener de ESC configurado');
+  }
+
+  // Setup imediato quando DOM estiver pronto
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupModalListeners);
+  } else {
+    setupModalListeners();
+  }
+  
+  // Setup adicional após um pequeno delay (fallback)
+  setTimeout(setupModalListeners, 1000);
 
   // =============================
   // Função auxiliar para mostrar foto no modal (usada por todas as abas)
