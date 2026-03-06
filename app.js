@@ -1655,11 +1655,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const compressionStatus = document.getElementById("compression-status");
 
   // RELAÇÃO ENTRE CURSO E TURMA REMOVIDA - CAMPOS INDEPENDENTES
-  document.addEventListener("DOMContentLoaded", () => {
+  function carregarOpcoesTurma() {
     const turmaSelect = document.getElementById("req-turma");
     
     console.log('🔍 Procurando elemento de turma...');
     console.log('turmaSelect:', turmaSelect);
+
+    if (!turmaSelect) {
+      console.error('❌ Elemento turma não encontrado!');
+      return;
+    }
 
     // Lista completa de todas as turmas disponíveis
     const todasTurmas = [
@@ -1669,28 +1674,31 @@ document.addEventListener("DOMContentLoaded", () => {
       "BIT24", "BIT25", "BIT26"
     ];
 
-    if (turmaSelect) {
-      // Limpar opções atuais
-      turmaSelect.innerHTML = '<option value="">Selecione...</option>';
-      
-      // Adicionar todas as turmas disponíveis
-      todasTurmas.forEach(turma => {
-        const option = document.createElement("option");
-        option.value = turma;
-        option.textContent = turma;
-        turmaSelect.appendChild(option);
-      });
-      
-      // Manter campo de turma sempre habilitado
-      turmaSelect.disabled = false;
-      
-      console.log('✅ Todas as turmas carregadas - campos independentes');
-      console.log('📋 Turmas disponíveis:', todasTurmas.join(', '));
-      console.log('🚫 CURSO E TURMA SÃO INDEPENDENTES - SEM RELAÇÃO!');
-    } else {
-      console.error('❌ Erro: Elemento de turma não encontrado!');
-    }
-  });
+    // Limpar opções atuais
+    turmaSelect.innerHTML = '<option value="">Selecione...</option>';
+    
+    // Adicionar todas as turmas disponíveis
+    todasTurmas.forEach(turma => {
+      const option = document.createElement("option");
+      option.value = turma;
+      option.textContent = turma;
+      turmaSelect.appendChild(option);
+    });
+    
+    // Manter campo de turma sempre habilitado
+    turmaSelect.disabled = false;
+    
+    console.log('✅ Todas as turmas carregadas - campos independentes');
+    console.log('📋 Turmas disponíveis:', todasTurmas.join(', '));
+    console.log('🚫 CURSO E TURMA SÃO INDEPENDENTES - SEM RELAÇÃO!');
+  }
+
+  // Carregar quando DOM estiver pronto
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', carregarOpcoesTurma);
+  } else {
+    carregarOpcoesTurma();
+  }
 
   if (fotoInput && fileInfo && fileName && fileSize && compressionStatus) {
     fotoInput.addEventListener("change", (e) => {
