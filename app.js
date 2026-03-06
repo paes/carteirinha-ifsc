@@ -1687,8 +1687,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Botão de emergência visual (se precisar)
-  setTimeout(() => {
+  // Botão de emergência visual (apenas quando logado)
+  function criarBotoesEmergencia() {
     // Criar botão de emergência se não existir
     if (!document.getElementById("emergency-close")) {
       const emergencyBtn = document.createElement("button");
@@ -1733,7 +1733,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const checkModals = setInterval(() => {
         const observacoesModal = document.getElementById("observacoes-modal");
         const photoModal = document.getElementById("photo-modal");
-        const anyModalOpen = (observacoesModal && !observacoesModal.classList.contains("hidden")) || 
+        const observacoesContent = document.getElementById("observacoes-content");
+        const anyModalOpen = (observacoesContent && observacoesContent.classList.contains("expanded")) ||
                             (photoModal && !photoModal.classList.contains("hidden"));
         emergencyBtn.style.display = anyModalOpen ? "block" : "none";
       }, 300);
@@ -1790,7 +1791,21 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       document.body.appendChild(floatingBtn);
     }
-  }, 1000);
+  }
+
+  // Verificar se usuário está logado antes de criar botões
+  fb.auth.onAuthStateChanged((user) => {
+    if (user) {
+      // Usuário logado - criar botões de emergência
+      setTimeout(criarBotoesEmergencia, 1000);
+    } else {
+      // Usuário deslogado - remover botões de emergência
+      const emergencyBtn = document.getElementById("emergency-close");
+      const floatingBtn = document.getElementById("floating-emergency");
+      if (emergencyBtn) emergencyBtn.remove();
+      if (floatingBtn) floatingBtn.remove();
+    }
+  });
 
   // EXIBIR INFORMAÇÕES DO ARQUIVO DE FOTO
   const fotoInput = document.getElementById("req-foto");
