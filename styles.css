@@ -606,11 +606,32 @@ button.primary:active {
   border: 1px solid #333;
 }
 
+/* Layout do nome com carimbo inline */
+.name-with-timestamp {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-timestamp-inline {
+  font-size: 0.6rem;
+  color: #d32f2f;
+  font-family: monospace;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.5); /* Mais transparência */
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(211, 47, 47, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* "Observações" como bloco logo após os campos */
 
 .card-footer {
   margin-top: 0.12rem;
-  padding: 0.28rem 0.4rem 0.32rem 0.4rem;
+  padding: 0.15rem 0.3rem 0.18rem 0.3rem;
   border-radius: 4px;
   border: 1px solid #ccd1d7;
   background: #f1f5f1;
