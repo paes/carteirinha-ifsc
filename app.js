@@ -364,7 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
         minute: "2-digit",
         second: "2-digit"
       });
-      cardTimestamp.textContent = `Gerado em: ${dataHora}`;
+      cardTimestamp.textContent = `Válido em: ${dataHora}`;
     }
   }
 
@@ -467,7 +467,7 @@ document.addEventListener("DOMContentLoaded", () => {
         minute: "2-digit",
         second: "2-digit"
       });
-      cardTimestamp.textContent = `Gerado em: ${dataHora}`;
+      cardTimestamp.textContent = `Válido em: ${dataHora}`;
     }
 
     if (statusMsg) {

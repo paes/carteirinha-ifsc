@@ -566,11 +566,15 @@ button.primary:active {
 
 .card-timestamp {
   display: block;
-  font-size: 0.6rem;
-  color: #666;
-  margin-top: 0.3rem;
+  font-size: 0.65rem;
+  color: #d32f2f;
+  margin-top: 0.4rem;
   font-family: monospace;
   text-align: right;
+  font-weight: bold;
+  background: rgba(211, 47, 47, 0.1);
+  padding: 2px 4px;
+  border-radius: 3px;
 }
 
 /* Botão flutuante de SAIR na tela da carteirinha */
