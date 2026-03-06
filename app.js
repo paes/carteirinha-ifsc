@@ -1711,7 +1711,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!document.getElementById("emergency-close")) {
       const emergencyBtn = document.createElement("button");
       emergencyBtn.id = "emergency-close";
-      emergencyBtn.innerHTML = "🔓 Fechar Tudo";
+      emergencyBtn.innerHTML = "🔓 FECHAR";
       emergencyBtn.style.cssText = `
         position: fixed;
         top: 10px;
@@ -1720,21 +1720,93 @@ document.addEventListener("DOMContentLoaded", () => {
         background: #f44336;
         color: white;
         border: none;
-        padding: 5px 10px;
-        border-radius: 5px;
+        padding: 8px 12px;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 12px;
+        font-size: 14px;
+        font-weight: bold;
         display: none;
+        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+        animation: pulse 1.5s infinite;
       `;
       emergencyBtn.addEventListener("click", fecharTodosModais);
+      emergencyBtn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        fecharTodosModais();
+      });
       document.body.appendChild(emergencyBtn);
+      
+      // Adicionar animação CSS
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+      `;
+      document.head.appendChild(style);
       
       // Mostrar botão se algum modal estiver aberto
       const checkModals = setInterval(() => {
-        const anyModalOpen = !observacoesModal?.classList.contains("hidden") || 
-                            !document.getElementById("photo-modal")?.classList.contains("hidden");
+        const observacoesModal = document.getElementById("observacoes-modal");
+        const photoModal = document.getElementById("photo-modal");
+        const anyModalOpen = (observacoesModal && !observacoesModal.classList.contains("hidden")) || 
+                            (photoModal && !photoModal.classList.contains("hidden"));
         emergencyBtn.style.display = anyModalOpen ? "block" : "none";
+      }, 300);
+    }
+    
+    // Adicionar gesto de toque duplo para emergência em celular
+    let touchCount = 0;
+    let touchTimer = null;
+    
+    document.addEventListener("touchstart", (e) => {
+      touchCount++;
+      
+      if (touchTimer) clearTimeout(touchTimer);
+      
+      touchTimer = setTimeout(() => {
+        touchCount = 0;
       }, 500);
+      
+      // Toque duplo na tela fecha tudo
+      if (touchCount >= 2) {
+        fecharTodosModais();
+        touchCount = 0;
+        clearTimeout(touchTimer);
+      }
+    });
+    
+    // Adicionar botão flutuante sempre visível no celular
+    if (window.innerWidth <= 768) {
+      const floatingBtn = document.createElement("button");
+      floatingBtn.id = "floating-emergency";
+      floatingBtn.innerHTML = "🔓";
+      floatingBtn.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 999998;
+        background: #7aba05;
+        color: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(122, 186, 5, 0.4);
+      `;
+      floatingBtn.addEventListener("click", fecharTodosModais);
+      floatingBtn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        fecharTodosModais();
+      });
+      document.body.appendChild(floatingBtn);
     }
   }, 1000);
 
