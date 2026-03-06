@@ -594,45 +594,6 @@ document.addEventListener("DOMContentLoaded", () => {
       tbody.appendChild(tr);
     });
 
-    const photoModal = document.getElementById("photo-modal");
-    const photoModalClose = document.getElementById("photo-modal-close");
-    const photoModalImg = document.getElementById("photo-modal-img");
-
-    function closePhotoModal() {
-      if (photoModal) {
-        photoModal.classList.add("hidden");
-        photoModal.style.display = "none";
-      }
-      if (photoModalImg) photoModalImg.src = "";
-    }
-
-    function openPhotoModal() {
-      if (photoModal) {
-        photoModal.classList.remove("hidden");
-        photoModal.style.display = "flex";
-      }
-    }
-
-    if (photoModalClose) {
-      photoModalClose.addEventListener("click", closePhotoModal);
-    }
-
-    // Fechar modal ao clicar fora
-    if (photoModal) {
-      photoModal.addEventListener("click", (e) => {
-        if (e.target === photoModal) {
-          closePhotoModal();
-        }
-      });
-    }
-
-    // Fechar modal com ESC
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !photoModal?.classList.contains("hidden")) {
-        closePhotoModal();
-      }
-    });
-
     tbody.querySelectorAll(".photo-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const ra = btn.getAttribute("data-ra");
@@ -1077,6 +1038,53 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // =============================
+  // Funções globais para modal de fotos
+  // =============================
+  function openPhotoModal() {
+    const photoModal = document.getElementById("photo-modal");
+    if (photoModal) {
+      photoModal.classList.remove("hidden");
+      photoModal.style.display = "flex";
+    }
+  }
+
+  function closePhotoModal() {
+    const photoModal = document.getElementById("photo-modal");
+    const photoModalImg = document.getElementById("photo-modal-img");
+    if (photoModal) {
+      photoModal.classList.add("hidden");
+      photoModal.style.display = "none";
+    }
+    if (photoModalImg) photoModalImg.src = "";
+  }
+
+  // Configurar event listeners do modal
+  document.addEventListener("DOMContentLoaded", () => {
+    const photoModalClose = document.getElementById("photo-modal-close");
+    const photoModal = document.getElementById("photo-modal");
+
+    if (photoModalClose) {
+      photoModalClose.addEventListener("click", closePhotoModal);
+    }
+
+    // Fechar modal ao clicar fora
+    if (photoModal) {
+      photoModal.addEventListener("click", (e) => {
+        if (e.target === photoModal) {
+          closePhotoModal();
+        }
+      });
+    }
+
+    // Fechar modal com ESC
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !photoModal?.classList.contains("hidden")) {
+        closePhotoModal();
+      }
+    });
+  });
 
   // =============================
   // Função auxiliar para mostrar foto no modal (usada por todas as abas)
