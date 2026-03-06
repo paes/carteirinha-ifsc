@@ -1462,23 +1462,19 @@ document.addEventListener("DOMContentLoaded", () => {
   if (shareLinksBtn) {
     shareLinksBtn.addEventListener("click", () => {
       const mensagem = encodeURIComponent(
-        "Ola. Este e o passo a passo para requerer a autorizacao de saida antecipada do IFSC\n\n" +
+        "Olá. Este é o passo a passo para requerer a autorização de saída antecipada do IFSC\n\n" +
         "PASSO A PASSO - Como autorizar:\n\n" +
-        "1 PASSO - Leia as informacoes:\n" +
-        "Apresentacao do projeto e regras: https://drive.google.com/file/d/11-FZhZj30aDnEdbRhd59ikbi1NcMTgPh/view?usp=sharing\n\n" +
-        "2 PASSO - Preencha o formulario:\n" +
-        "Formulario institucional: https://docs.google.com/forms/d/e/1FAIpQLSdc7TBD05qC_7_iKxxi9TDlT6W5kWzR3qtEQNR-lCkMWXa1lQ/viewform\n\n" +
-        "3 PASSO - Baixe e assine o termo:\n" +
-        "Termo de autorizacao (PDF): https://drive.google.com/file/d/1TgMmb-GQ7A3z8_xq96yWxYIdhZ_fSBz9/view?usp=sharing\n" +
+        "1º PASSO - Leia as informações:\n" +
+        "Apresentação do projeto e regras: https://drive.google.com/file/d/11-FZhZj30aDnEdbRhd59ikbi1NcMTgPh/view?usp=sharing\n\n" +
+        "2º PASSO - Preencha o formulário:\n" +
+        "Formulário institucional: https://docs.google.com/forms/d/e/1FAIpQLSdc7TBD05qC_7_iKxxi9TDlT6W5kWzR3qtEQNR-lCkMWXa1lQ/viewform\n\n" +
+        "3º PASSO - Baixe e assine o termo:\n" +
+        "Termo de autorização (PDF): https://drive.google.com/file/d/1TgMmb-GQ7A3z8_xq96yWxYIdhZ_fSBz9/view?usp=sharing\n" +
         "Assine digitalmente em: https://assinador.iti.br/\n\n" +
-        "4 PASSO - Anexe o termo assinado:\n" +
-        "Volte ao formulario do 2 passo e anexe o PDF que voce assinou\n\n" +
-        "5 PASSO - Confirme o envio:\n" +
-        "Apos anexar, envie uma mensagem confirmando que enviou o formulario\n\n" +
-        "Sistema do IFSC:\n" +
-        "https://carteirinha-ifsc.netlify.app/\n\n" +
-        "Duvidas?\n" +
-        "Entre em contato com a coordenacao do campus Garopaba\n\n" +
+        "4º PASSO - Anexe o termo assinado:\n" +
+        "Volte ao formulário do 2º passo e anexe o PDF que você assinou\n\n" +
+        "5º PASSO - Confirme o envio:\n" +
+        "Após anexar, envie uma mensagem confirmando que enviou o formulário\n\n" +
         "Mensagem gerada automaticamente pelo sistema LiberaIFSC"
       );
       
@@ -1658,13 +1654,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const fileSize = document.getElementById("file-size");
   const compressionStatus = document.getElementById("compression-status");
 
-  // FILTRAGEM DE TURMAS POR CURSO (removida - agora permite qualquer combinação)
+  // RELAÇÃO ENTRE CURSO E TURMA REMOVIDA - CAMPOS INDEPENDENTES
   document.addEventListener("DOMContentLoaded", () => {
-    const cursoSelect = document.getElementById("req-curso");
     const turmaSelect = document.getElementById("req-turma");
-
-    console.log('🔍 Procurando elementos de curso e turma...');
-    console.log('cursoSelect:', cursoSelect);
+    
+    console.log('🔍 Procurando elemento de turma...');
     console.log('turmaSelect:', turmaSelect);
 
     // Lista completa de todas as turmas disponíveis
@@ -1675,7 +1669,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "BIT24", "BIT25", "BIT26"
     ];
 
-    function carregarTodasTurmas() {
+    if (turmaSelect) {
       // Limpar opções atuais
       turmaSelect.innerHTML = '<option value="">Selecione...</option>';
       
@@ -1687,27 +1681,14 @@ document.addEventListener("DOMContentLoaded", () => {
         turmaSelect.appendChild(option);
       });
       
-      // Habilitar campo de turma
+      // Manter campo de turma sempre habilitado
       turmaSelect.disabled = false;
-      console.log('✅ Todas as turmas carregadas - qualquer combinação permitida');
+      
+      console.log('✅ Todas as turmas carregadas - campos independentes');
       console.log('📋 Turmas disponíveis:', todasTurmas.join(', '));
-      console.log('🚫 SEM RESTRIÇÃO - Curso e Turma são independentes!');
-    }
-
-    if (cursoSelect && turmaSelect) {
-      // Carregar todas as turmas ao carregar a página
-      carregarTodasTurmas();
-      
-      // Manter evento de change no curso apenas para log, sem filtragem
-      cursoSelect.addEventListener("change", () => {
-        const cursoSelecionado = cursoSelect.value;
-        console.log('🎯 Curso selecionado:', cursoSelecionado);
-        console.log('📋 Turma pode ser qualquer uma - sem restrição');
-      });
-      
-      console.log('🎯 Sistema de turmas inicializado - combinação livre');
+      console.log('🚫 CURSO E TURMA SÃO INDEPENDENTES - SEM RELAÇÃO!');
     } else {
-      console.error('❌ Erro: Elementos de curso/turma não encontrados!');
+      console.error('❌ Erro: Elemento de turma não encontrado!');
     }
   });
 
