@@ -1450,6 +1450,45 @@ document.addEventListener("DOMContentLoaded", () => {
   const fileSize = document.getElementById("file-size");
   const compressionStatus = document.getElementById("compression-status");
 
+  // FILTRAGEM DE TURMAS POR CURSO
+  const cursoSelect = document.getElementById("req-curso");
+  const turmaSelect = document.getElementById("req-turma");
+
+  // Mapeamento de cursos para turmas
+  const turmasPorCurso = {
+    "Curso Técnico Integrado em Administração": ["ADM24", "ADM25", "ADM26"],
+    "Curso Técnico Integrado em Informática": ["INF24", "INF25", "INF26"],
+    "Curso Técnico Integrado em Lazer": ["LAZ25", "LAZ26"],
+    "Curso Técnico Concomitante em Biotecnologia": ["BIT23", "BIT24", "BIT25", "BIT26"]
+  };
+
+  if (cursoSelect && turmaSelect) {
+    cursoSelect.addEventListener("change", () => {
+      const cursoSelecionado = cursoSelect.value;
+      
+      // Limpar opções atuais
+      turmaSelect.innerHTML = '<option value="">Selecione...</option>';
+      
+      if (cursoSelecionado && turmasPorCurso[cursoSelecionado]) {
+        // Adicionar turmas correspondentes ao curso
+        turmasPorCurso[cursoSelecionado].forEach(turma => {
+          const option = document.createElement("option");
+          option.value = turma;
+          option.textContent = turma;
+          turmaSelect.appendChild(option);
+        });
+        turmaSelect.disabled = false;
+      } else {
+        // Se não houver curso selecionado, desabilitar turma
+        turmaSelect.innerHTML = '<option value="">Selecione um curso primeiro...</option>';
+        turmaSelect.disabled = true;
+      }
+    });
+
+    // Desabilitar turma inicialmente
+    turmaSelect.disabled = true;
+  }
+
   if (fotoInput && fileInfo && fileName && fileSize && compressionStatus) {
     fotoInput.addEventListener("change", (e) => {
       const file = e.target.files[0];

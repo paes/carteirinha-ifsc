@@ -132,30 +132,14 @@
 
         <label>
           Turma
-          <select id="req-turma" name="turma" required>>
-            <option value="">Selecione...</option>
-            <!-- Informática -->
-            <option value="INF24">INF24</option>
-            <option value="INF25">INF25</option>
-            <option value="INF26">INF26</option>
-            <!-- Lazer -->
-            <option value="LAZ25">LAZ25</option>
-            <option value="LAZ26">LAZ26</option>
-            <!-- Administração -->
-            <option value="ADM24">ADM24</option>
-            <option value="ADM25">ADM25</option>
-            <option value="ADM26">ADM26</option>
-            <!-- Biotecnologia (Concomitante) -->
-            <option value="BIT23">BIT23</option>
-            <option value="BIT24">BIT24</option>
-            <option value="BIT25">BIT25</option>
-            <option value="BIT26">BIT26</option>
+          <select id="req-turma" name="turma" required>
+            <option value="">Selecione um curso primeiro...</option>
           </select>
         </label>
 
         <label>
           Data de nascimento do aluno
-          <input type="text" id="req-data-nasc" name="data_nasc" required placeholder="YYYY-MM-DD" />
+          <input type="text" id="req-data-nasc" name="data_nasc" required placeholder="YYYY-MM-DD" value="2009-09-15" />
         </label>
 
         <label>
@@ -314,26 +298,13 @@
             </div>
             
             <div class="card-fields">
-              <label>
-                Curso
-                <select id="req-curso" name="curso" required>
-                  <option value="">Selecione...</option>
-                  <option value="Curso Técnico Integrado em Administração">
-                    Curso Técnico Integrado em Administração
-                  </option>
-                  <option value="Curso Técnico Integrado em Informática">
-                    Curso Técnico Integrado em Informática
-                  </option>
-                  <option value="Curso Técnico Integrado em Lazer">
-                    Curso Técnico Integrado em Lazer
-                  </option>
-                  <option value="Curso Técnico Concomitante em Biotecnologia">
-                    Curso Técnico Concomitante em Biotecnologia
-                  </option>
-                </select>
-              </label>
+              <!-- NOME em linha cheia -->
+              <div class="card-field full">
+                <span class="field-label">NOME</span>
+                <span class="field-value" id="card-name"></span>
+              </div>
 
-                <!-- MATRÍCULA + IDADE na mesma linha -->
+              <!-- MATRÍCULA + IDADE na mesma linha -->
                 <div class="card-row">
                   <div class="card-field half">
                     <span class="field-label">MATRÍCULA</span>
