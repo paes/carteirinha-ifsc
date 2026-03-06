@@ -1479,20 +1479,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // GARANTIR VALOR CORRETO DO RODAPÉ
-  function garantirRodapeCorreto() {
-    const lastUpdatedElement = document.getElementById('last-updated');
-    if (lastUpdatedElement) {
-      // Forçar o valor correto caso algo tenha alterado
-      const valorCorreto = '06/03/2026 00:54';
-      if (lastUpdatedElement.textContent !== valorCorreto) {
-        lastUpdatedElement.textContent = valorCorreto;
-        console.log('👣 Rodapé corrigido para:', valorCorreto);
-      }
-    }
-  }
-
-  // Verificar e corrigir o rodapé periodicamente
   setInterval(garantirRodapeCorreto, 5000);
   
   // Corrigir imediatamente ao carregar
