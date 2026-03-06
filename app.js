@@ -200,6 +200,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const googleLoginBtn = document.getElementById("google-login-btn");
   const loginError = document.getElementById("login-error");
   const goToRequestBtn = document.getElementById("go-to-request");
+  console.log("Elemento google-login-btn encontrado:", googleLoginBtn);
+  console.log("Tipo do elemento:", googleLoginBtn ? googleLoginBtn.tagName : 'null');
+  
+  if (googleLoginBtn) {
+    console.log("Adicionando event listener ao botão Google");
+    googleLoginBtn.addEventListener("click", async () => {
+      console.log("Botão Google clicado!");
+      if (loginError) loginError.classList.add("hidden");
+      try {
+        await signInWithGoogle(fb.auth);
+      } catch (err) {
+        console.error(err);
+        if (loginError) loginError.classList.remove("hidden");
+      }
+    });
+  } else {
+    console.error("ERRO: Elemento google-login-btn não encontrado!");
+  }
 
   let fb;
   try {
@@ -600,18 +618,6 @@ document.addEventListener("DOMContentLoaded", () => {
       altFormat: "d/m/Y",
       dateFormat: "Y-m-d",
       allowInput: true
-    });
-  }
-
-  if (googleLoginBtn) {
-    googleLoginBtn.addEventListener("click", async () => {
-      if (loginError) loginError.classList.add("hidden");
-      try {
-        await signInWithGoogle(fb.auth);
-      } catch (err) {
-        console.error(err);
-        if (loginError) loginError.classList.remove("hidden");
-      }
     });
   }
 
