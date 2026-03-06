@@ -1612,7 +1612,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Curso Técnico Integrado em Administração": ["ADM24", "ADM25", "ADM26"],
     "Curso Técnico Integrado em Informática": ["INF24", "INF25", "INF26"],
     "Curso Técnico Integrado em Lazer": ["LAZ25", "LAZ26"],
-    "Curso Técnico Concomitante em Biotecnologia": ["BIT23", "BIT24", "BIT25", "BIT26"]
+    "Curso Técnico Concomitante em Biotecnologia": ["BIT24", "BIT25", "BIT26"]
   };
 
   if (cursoSelect && turmaSelect) {
