@@ -1563,7 +1563,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 100);
 
   // BLOQUEIO DE ORIENTAÇÃO FORTE
+  function isMobileDevice() {
+    // Verificar se é dispositivo móvel
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           (window.innerWidth <= 768 && 'ontouchstart' in window);
+  }
+
   function lockOrientation() {
+    // Não bloquear em desktop
+    if (!isMobileDevice()) {
+      console.log('🖥️ Desktop detectado - pulando bloqueio de orientação');
+      return;
+    }
+    
     // Tentar bloquear orientação via Screen Orientation API
     if (screen && screen.orientation && screen.orientation.lock) {
       screen.orientation.lock('portrait').catch(err => {
@@ -1643,20 +1655,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const fileSize = document.getElementById("file-size");
   const compressionStatus = document.getElementById("compression-status");
 
-  // FILTRAGEM DE TURMAS POR CURSO
-  const cursoSelect = document.getElementById("req-curso");
-  const turmaSelect = document.getElementById("req-turma");
+  // FILTRAGEM DE TURMAS POR CURSO (movido para DOMContentLoaded)
+  document.addEventListener("DOMContentLoaded", () => {
+    const cursoSelect = document.getElementById("req-curso");
+    const turmaSelect = document.getElementById("req-turma");
 
-  // Mapeamento de cursos para turmas
-  const turmasPorCurso = {
-    "Curso Técnico Integrado em Administração": ["ADM24", "ADM25", "ADM26"],
-    "Curso Técnico Integrado em Informática": ["INF24", "INF25", "INF26"],
-    "Curso Técnico Integrado em Lazer": ["LAZ25", "LAZ26"],
-    "Curso Técnico Concomitante em Biotecnologia": ["BIT24", "BIT25", "BIT26"]
-  };
+    // Mapeamento de cursos para turmas
+    const turmasPorCurso = {
+      "Curso Técnico Integrado em Administração": ["ADM24", "ADM25", "ADM26"],
+      "Curso Técnico Integrado em Informática": ["INF24", "INF25", "INF26"],
+      "Curso Técnico Integrado em Lazer": ["LAZ25", "LAZ26"],
+      "Curso Técnico Concomitante em Biotecnologia": ["BIT24", "BIT25", "BIT26"]
+    };
 
-  if (cursoSelect && turmaSelect) {
-    cursoSelect.addEventListener("change", () => {
+    function updateTurmaOptions() {
       const cursoSelecionado = cursoSelect.value;
       
       // Limpar opções atuais
@@ -1676,11 +1688,17 @@ document.addEventListener("DOMContentLoaded", () => {
         turmaSelect.innerHTML = '<option value="">Selecione um curso primeiro...</option>';
         turmaSelect.disabled = true;
       }
-    });
+    }
 
-    // Desabilitar turma inicialmente
-    turmaSelect.disabled = true;
-  }
+    if (cursoSelect && turmaSelect) {
+      cursoSelect.addEventListener("change", updateTurmaOptions);
+      
+      // Desabilitar turma inicialmente
+      turmaSelect.disabled = true;
+      
+      console.log('🎯 Sistema de filtragem de turmas inicializado');
+    }
+  });
 
   if (fotoInput && fileInfo && fileName && fileSize && compressionStatus) {
     fotoInput.addEventListener("change", (e) => {
