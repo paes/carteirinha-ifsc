@@ -1090,35 +1090,117 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     
+    // Mostrar indicador de carregamento
+    if (photoModalImg) {
+      photoModalImg.alt = "Carregando foto...";
+      photoModalImg.style.opacity = "0.5";
+    }
+    
     try {
-      const doc = await fb.firestore.collection("students").doc(ra).get();
-      const data = doc.exists ? doc.data() : null;
+      // Buscar dados do usuário no Firestore
+      const userDoc = await fb.firestore.collection("students").doc(ra).get();
+      const data = userDoc.data();
       
-      // Verificar se tem foto em Base64 ou no Storage antigo
-      if (!data || (!data.photoBase64 && !data.photoPath)) {
-        alert("Aluno não enviou foto.");
+      if (!data) {
+        throw new Error("Usuário não encontrado");
+      }
+      
+      // Tentar usar Base64 primeiro (mais confiável)
+      if (data.photoBase64) {
+        console.log("📸 Usando Base64 da foto");
+        if (photoModalImg) {
+          photoModalImg.src = data.photoBase64;
+          photoModalImg.alt = "Foto do aluno";
+          photoModalImg.style.opacity = "1";
+        }
+        openPhotoModal();
         return;
       }
       
-      // Usar Base64 se disponível
-      if (data.photoBase64) {
-        if (photoModalImg) photoModalImg.src = data.photoBase64;
-        openPhotoModal();
-      } 
-      // Fallback para Storage antigo
-      else if (data.photoPath) {
+      // Fallback para Storage com múltiplas tentativas
+      if (data.photoPath) {
+        console.log("📸 Tentando carregar do Storage:", data.photoPath);
+        
+        // Tentativa 1: URL padrão
         try {
           const url = await fb.storage.ref(data.photoPath).getDownloadURL();
-          if (photoModalImg) photoModalImg.src = url;
+          console.log("✅ Foto carregada do Storage (tentativa 1)");
+          if (photoModalImg) {
+            photoModalImg.src = url;
+            photoModalImg.alt = "Foto do aluno";
+            photoModalImg.style.opacity = "1";
+          }
           openPhotoModal();
-        } catch (storageErr) {
-          console.error("Erro ao carregar do Storage:", storageErr);
-          alert("Foto não encontrada no Storage. Tente novamente.");
+          return;
+        } catch (err1) {
+          console.warn("⚠️ Falha tentativa 1:", err1);
+        }
+        
+        // Tentativa 2: Com timeout maior
+        try {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          const url = await fb.storage.ref(data.photoPath).getDownloadURL({ 
+            customMetadata: { cacheControl: 'no-cache' }
+          });
+          console.log("✅ Foto carregada do Storage (tentativa 2)");
+          if (photoModalImg) {
+            photoModalImg.src = url;
+            photoModalImg.alt = "Foto do aluno";
+            photoModalImg.style.opacity = "1";
+          }
+          openPhotoModal();
+          return;
+        } catch (err2) {
+          console.warn("⚠️ Falha tentativa 2:", err2);
+        }
+        
+        // Tentativa 3: Forçar refresh do token
+        try {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          const url = await fb.storage.ref(data.photoPath).getDownloadURL();
+          console.log("✅ Foto carregada do Storage (tentativa 3)");
+          if (photoModalImg) {
+            photoModalImg.src = url;
+            photoModalImg.alt = "Foto do aluno";
+            photoModalImg.style.opacity = "1";
+          }
+          openPhotoModal();
+          return;
+        } catch (err3) {
+          console.error("❌ Todas as tentativas falharam:", err3);
+          throw err3;
         }
       }
-    } catch (err) {
-      console.error(err);
-      alert("Não foi possível carregar a foto.");
+      
+      throw new Error("Nenhuma foto encontrada");
+      
+    } catch (error) {
+      console.error("❌ Erro ao carregar foto:", error);
+      
+      // Mensagens específicas para diferentes tipos de erro
+      let errorMessage = "Não foi possível carregar a foto. Tente novamente.";
+      
+      if (error.message.includes("storage/unauthorized") || error.message.includes("403")) {
+        errorMessage = "Você não tem permissão para ver esta foto. Contate o administrador.";
+      } else if (error.message.includes("storage/object-not-found") || error.message.includes("404")) {
+        errorMessage = "Foto não encontrada no sistema. O aluno pode não ter enviado foto ainda.";
+      } else if (error.message.includes("storage/canceled")) {
+        errorMessage = "Carregamento cancelado. Tente novamente.";
+      } else if (error.message.includes("storage/retry-limit-exceeded")) {
+        errorMessage = "Tentativas de carregamento excedidas. Aguarde alguns minutos e tente novamente.";
+      } else if (error.message.includes("CORS") || error.message.includes("cross-origin")) {
+        errorMessage = "Erro de acesso entre domínios. Tente acessar diretamente pelo navegador ou contate o suporte.";
+      }
+      
+      // Mostrar erro no modal
+      if (photoModalImg) {
+        photoModalImg.alt = "Erro ao carregar foto";
+        photoModalImg.style.opacity = "1";
+        photoModalImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f0f0f0'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.3em' font-family='Arial' font-size='12' fill='%23666'%3E%3C/text%3E%3C/svg%3E";
+      }
+      
+      alert(errorMessage + "\n\nErro técnico: " + error.message);
+      openPhotoModal(); // Abrir modal mesmo com erro
     }
   }
 
