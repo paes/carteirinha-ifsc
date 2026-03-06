@@ -460,14 +460,25 @@ document.addEventListener("DOMContentLoaded", () => {
     if (photoPlaceholder) {
       photoPlaceholder.style.backgroundImage = "none";
       photoPlaceholder.textContent = "FOTO";
-      if (user.photoPath) {
+      
+      // Priorizar Base64 (novo sistema)
+      if (user.photoBase64) {
+        photoPlaceholder.style.backgroundImage = `url(${user.photoBase64})`;
+        photoPlaceholder.textContent = "";
+        console.log("📷 Usando foto Base64 da carteirinha");
+      }
+      // Fallback para Storage antigo
+      else if (user.photoPath) {
         try {
           const url = await fb.storage.ref(user.photoPath).getDownloadURL();
           photoPlaceholder.style.backgroundImage = `url(${url})`;
           photoPlaceholder.textContent = "";
+          console.log("📷 Usando foto do Storage (legado)");
         } catch (err) {
-          console.warn("Não foi possível carregar foto:", err);
+          console.warn("Não foi possível carregar foto do Storage:", err);
         }
+      } else {
+        console.log("⚠️ Nenhuma foto encontrada para exibir na carteirinha");
       }
     }
     // carimbo grande e situação
