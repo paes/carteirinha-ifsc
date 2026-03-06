@@ -1479,11 +1479,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  setInterval(garantirRodapeCorreto, 5000);
-  
-  // Corrigir imediatamente ao carregar
-  garantirRodapeCorreto();
-
   // CONTROLE DO RODAPÉ NA CARTEIRINHA
   function controlarRodapeNaCarteirinha(mostrarCarteirinha) {
     const footer = document.querySelector('.app-footer');
