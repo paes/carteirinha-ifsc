@@ -1622,61 +1622,43 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 100);
   });
 
-  // MODAL DE OBSERVAÇÕES
+  // OBSERVAÇÕES EXPANSIVAS - Sem modal
   const observacoesTrigger = document.getElementById("observacoes-trigger");
-  const observacoesTriggerText = document.getElementById("observacoes-trigger-text");
-  const observacoesModal = document.getElementById("observacoes-modal");
-  const observacoesModalClose = document.getElementById("observacoes-modal-close");
+  const observacoesContent = document.getElementById("observacoes-content");
 
-  function openObservacoesModal() {
-    if (observacoesModal) {
-      observacoesModal.classList.remove("hidden");
-      observacoesModal.style.display = "flex";
-    }
-  }
-
-  function closeObservacoesModal() {
-    if (observacoesModal) {
-      observacoesModal.classList.add("hidden");
-      observacoesModal.style.display = "none";
-    }
-  }
-
-  // Event listeners para o modal de observações
-  if (observacoesTrigger) {
-    observacoesTrigger.addEventListener("click", openObservacoesModal);
-  }
-  
-  if (observacoesTriggerText) {
-    observacoesTriggerText.addEventListener("click", openObservacoesModal);
-  }
-
-  if (observacoesModalClose) {
-    observacoesModalClose.addEventListener("click", closeObservacoesModal);
-  }
-
-  // Fechar modal ao clicar fora
-  if (observacoesModal) {
-    observacoesModal.addEventListener("click", (e) => {
-      if (e.target === observacoesModal) {
-        closeObservacoesModal();
+  function toggleObservacoes() {
+    if (observacoesContent && observacoesTrigger) {
+      const isExpanded = observacoesContent.classList.contains("expanded");
+      
+      if (isExpanded) {
+        // Fechar
+        observacoesContent.classList.remove("expanded");
+        observacoesTrigger.classList.remove("expanded");
+      } else {
+        // Abrir
+        observacoesContent.classList.add("expanded");
+        observacoesTrigger.classList.add("expanded");
       }
+    }
+  }
+
+  // Event listener para as observações
+  if (observacoesTrigger) {
+    observacoesTrigger.addEventListener("click", toggleObservacoes);
+    observacoesTrigger.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      toggleObservacoes();
     });
   }
 
-  // Fechar modal com ESC
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !observacoesModal?.classList.contains("hidden")) {
-      closeObservacoesModal();
-    }
-  });
-
   // FUNÇÃO DE EMERGÊNCIA - Fechar todos os modais
   function fecharTodosModais() {
-    // Fechar modal de observações
-    if (observacoesModal) {
-      observacoesModal.classList.add("hidden");
-      observacoesModal.style.display = "none";
+    // Fechar observações expansivas
+    const observacoesContent = document.getElementById("observacoes-content");
+    const observacoesTrigger = document.getElementById("observacoes-trigger");
+    if (observacoesContent && observacoesTrigger) {
+      observacoesContent.classList.remove("expanded");
+      observacoesTrigger.classList.remove("expanded");
     }
     
     // Fechar modal de fotos
@@ -1688,7 +1670,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (photoModalImg) photoModalImg.src = "";
     }
     
-    console.log("🔓 Todos os modais fechados (emergência)");
+    console.log("🔓 Todos os modais e expansivos fechados (emergência)");
   }
 
   // Adicionar atalho duplo ESC para emergência

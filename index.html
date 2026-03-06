@@ -348,10 +348,32 @@
 
                 <!-- Observações logo em seguida -->
                 <div class="card-footer">
-                  <span class="footer-title clickable" id="observacoes-trigger">Observações</span>
-                  <span class="footer-text clickable" id="observacoes-trigger-text">
-                    Válida exclusivamente para saída antecipada. Clique para ver situações...
-                  </span>
+                  <div class="observacoes-section">
+                    <div class="observacoes-header clickable" id="observacoes-trigger">
+                      <span class="footer-title">Observações</span>
+                      <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="observacoes-content collapsible" id="observacoes-content">
+                      <div class="observacoes-inner">
+                        <h4>🎯 Situações Autorizadas para Saída Antecipada:</h4>
+                        <ul>
+                          <li>✅ <strong>Trabalhos acadêmicos</strong> fora de horário de aula</li>
+                          <li>✅ <strong>Troca de horário</strong> de aulas</li>
+                          <li>✅ <strong>Ausência eventual</strong> de professores(as)</li>
+                          <li>✅ <strong>Atendimentos extraclasse</strong> ou monitoria</li>
+                          <li>✅ <strong>Finalização antecipada</strong> de avaliações</li>
+                        </ul>
+                        
+                        <h4>⚠️ Importante:</h4>
+                        <ul>
+                          <li>📍 A carteira é <strong>válida exclusivamente</strong> para as situações acima</li>
+                          <li>🕒 O aluno deve retornar ao câmpus no mesmo dia</li>
+                          <li>📨 A autorização deve ser previamente assinada pelo responsável</li>
+                          <li>👮‍♂️ Apresente esta carteira ao vigia na saída e entrada</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                   <span id="card-timestamp" class="card-timestamp"></span>
                 </div>
               </div>
@@ -514,34 +536,6 @@
     </div>
 
   </main>
-
-  <!-- Modal de Observações -->
-  <div id="observacoes-modal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-content observacoes-modal-content">
-      <div class="modal-header">
-        <h3>📋 Observações - Uso da Carteira de Saída</h3>
-        <button id="observacoes-modal-close" class="modal-close-btn" type="button">✕</button>
-      </div>
-      <div class="observacoes-content">
-        <h4>🎯 Situações Autorizadas para Saída Antecipada:</h4>
-        <ul>
-          <li>✅ <strong>Trabalhos acadêmicos</strong> fora de horário de aula</li>
-          <li>✅ <strong>Troca de horário</strong> de aulas</li>
-          <li>✅ <strong>Ausência eventual</strong> de professores(as)</li>
-          <li>✅ <strong>Atendimentos extraclasse</strong> ou monitoria</li>
-          <li>✅ <strong>Finalização antecipada</strong> de avaliações</li>
-        </ul>
-        
-        <h4>⚠️ Importante:</h4>
-        <ul>
-          <li>📍 A carteira é <strong>válida exclusivamente</strong> para as situações acima</li>
-          <li>🕒 O aluno deve retornar ao câmpus no mesmo dia</li>
-          <li>📨 A autorização deve ser previamente assinada pelo responsável</li>
-          <li>👮‍♂️ Apresente esta carteira ao vigia na saída e entrada</li>
-        </ul>
-      </div>
-    </div>
-  </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
