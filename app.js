@@ -5,9 +5,11 @@
 const ADMIN_EMAILS = [
   "thiago.paes@ifsc.edu.br",
   "nauber.gavski@ifsc.edu.br",
-  "miguel.zarth@ifsc.edu.br",
-  "felix.medina@ifsc.edu.br",
-  "coord.pedagogica.gpb@ifsc.edu.br"
+  "coord.pedagogica.gpb@ifsc.edu.br",
+  "jacqueline.bastos@ifsc.edu.br",
+  "aline.decker@ifsc.edu.br",
+  "carlos.guilherme@ifsc.edu.br",
+  "leonardo.radaik@ifsc.edu.br"
 ];
 
 function getFirebaseConfig() {
