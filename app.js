@@ -1551,7 +1551,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, 100);
 
-  // BLOQUEIO DE ORIENTAÇÃO FORTE
+  // BLOQUEIO DE ORIENTAÇÃO SUAVE
+  let lastOrientationAlert = 0;
+  
   function lockOrientation() {
     // Tentar bloquear orientação via Screen Orientation API
     if (screen && screen.orientation && screen.orientation.lock) {
@@ -1573,29 +1575,19 @@ document.addEventListener("DOMContentLoaded", () => {
   // Bloquear orientação ao carregar
   lockOrientation();
   
-  // Bloquear orientação quando a tela fica visível
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      lockOrientation();
-    }
-  });
-  
-  // Bloquear orientação quando o foco retorna
-  window.addEventListener('focus', lockOrientation);
-  
-  // Prevenir rotação via eventos de orientação
+  // Prevenir rotação via eventos de orientação - mais suave
   window.addEventListener('orientationchange', () => {
     setTimeout(() => {
-      if (window.orientation === 90 || window.orientation === -90) {
-        // Forçar volta ao retrato
+      const currentOrientation = window.orientation || 0;
+      if (currentOrientation === 90 || currentOrientation === -90) {
+        // Estou em landscape - tentar bloquear (sem alerta)
         lockOrientation();
-        // Mostrar alerta
-        if (confirm('📱 Por favor, mantenha seu celular na vertical (retrato) para usar o sistema.')) {
-          lockOrientation();
-        }
       }
     }, 100);
   });
+
+  // Não mostrar alertas repetidamente - apenas tentar bloquear
+  // Removido o confirm() que estava causando problemas
 
   // EXIBIR INFORMAÇÕES DO ARQUIVO DE FOTO
   const fotoInput = document.getElementById("req-foto");

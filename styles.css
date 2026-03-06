@@ -628,10 +628,10 @@ button.primary:active {
   color: #444;
 }
 
-/* Prevenir rotação e forçar retrato - BLOQUEIO FORTE */
+/* Prevenir rotação e forçar retrato - AJUSTADO */
 @media screen and (orientation: landscape) {
   body {
-    transform: rotate(-90deg) scale(1.2);
+    transform: rotate(-90deg);
     transform-origin: left top;
     position: absolute;
     top: 100%;
@@ -641,7 +641,7 @@ button.primary:active {
     overflow: hidden;
   }
   
-  /* Mostrar mensagem de orientação em tela cheia */
+  /* Mostrar mensagem de orientação apenas quando em landscape */
   body::before {
     content: "📱 POR FAVOR, GIRE SEU CELULAR PARA MODO VERTICAL (RETRATO)";
     position: fixed;
@@ -660,23 +660,31 @@ button.primary:active {
     font-weight: bold;
     padding: 20px;
     line-height: 1.5;
-    animation: blink 1s infinite;
-  }
-  
-  /* Esconder todo o conteúdo quando em landscape */
-  body > * {
-    display: none !important;
-  }
-  
-  /* Mostrar apenas a mensagem de orientação */
-  body::before {
-    display: flex !important;
   }
 }
 
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0.3; }
+/* IMPORTANTE: Em retrato, NÃO mostrar mensagem e permitir uso normal */
+@media screen and (orientation: portrait) {
+  body::before {
+    display: none !important;
+    content: none !important;
+  }
+  
+  body {
+    transform: none !important;
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  /* Garantir que todo conteúdo seja visível em retrato */
+  body > * {
+    display: block !important;
+    visibility: visible !important;
+  }
 }
 
 /* Forçar retrato no HTML também */
