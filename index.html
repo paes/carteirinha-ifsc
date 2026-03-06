@@ -2,7 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="screen-orientation" content="portrait" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>LiberaIFSC</title>
 
         <meta name="theme-color" content="#7aba05" />
@@ -293,67 +296,82 @@
                 FOTO
               </div>
               <div id="card-stamp" class="card-stamp">
-                <!-- SAﾃ好A AUTORIZADA / PENDENTE -->
+                SAÍDA AUTORIZADA
               </div>
+              <!-- Timestamp sobreposto -->
+              <span id="card-timestamp" class="card-timestamp-overlay"></span>
             </div>
-
+            
             <div class="card-fields">
-              <!-- NOME em linha cheia -->
-              <div class="card-field full">
-                <span class="field-label">NOME</span>
-                <span class="field-value" id="card-name"></span>
-              </div>
+              <label>
+                Curso
+                <select id="req-curso" name="curso" required>
+                  <option value="">Selecione...</option>
+                  <option value="Curso Técnico Integrado em Administração">
+                    Curso Técnico Integrado em Administração
+                  </option>
+                  <option value="Curso Técnico Integrado em Informática">
+                    Curso Técnico Integrado em Informática
+                  </option>
+                  <option value="Curso Técnico Integrado em Lazer">
+                    Curso Técnico Integrado em Lazer
+                  </option>
+                  <option value="Curso Técnico Concomitante em Biotecnologia">
+                    Curso Técnico Concomitante em Biotecnologia
+                  </option>
+                </select>
+              </label>
 
-              <!-- MATRÍCULA + IDADE na mesma linha -->
-              <div class="card-row">
-                <div class="card-field half">
-                  <span class="field-label">MATRÍCULA</span>
-                  <span class="field-value" id="card-ra"></span>
+                <!-- MATRÍCULA + IDADE na mesma linha -->
+                <div class="card-row">
+                  <div class="card-field half">
+                    <span class="field-label">MATRÍCULA</span>
+                    <span class="field-value" id="card-ra"></span>
+                  </div>
+                  <div class="card-field half">
+                    <span class="field-label">IDADE DO ALUNO</span>
+                    <span class="field-value" id="card-idade"></span>
+                  </div>
                 </div>
-                <div class="card-field half">
-                  <span class="field-label">IDADE DO ALUNO</span>
-                  <span class="field-value" id="card-idade"></span>
-                </div>
-              </div>
 
-              <!-- CURSO / TURMA em linha cheia -->
-              <div class="card-field full">
-                <span class="field-label">CURSO / TURMA</span>
-                <div class="field-value field-value-curso-turma">
-                  <span id="card-course"></span>
-                  <span id="card-turma" class="tag-turma"></span>
+                <!-- CURSO / TURMA em linha cheia -->
+                <div class="card-field full">
+                  <span class="field-label">CURSO / TURMA</span>
+                  <div class="field-value field-value-curso-turma">
+                    <span id="card-course"></span>
+                    <span id="card-turma" class="tag-turma"></span>
+                  </div>
                 </div>
-              </div>
 
-              <!-- RESPONSÁVEL + TELEFONE na mesma linha -->
-              <div class="card-row">
-                <div class="card-field half">
-                  <span class="field-label">NOME DO RESPONSÁVEL</span>
-                  <span class="field-value" id="card-resp-nome"></span>
+                <!-- RESPONSÁVEL + TELEFONE na mesma linha -->
+                <div class="card-row">
+                  <div class="card-field half">
+                    <span class="field-label">NOME DO RESPONSÁVEL</span>
+                    <span class="field-value" id="card-resp-nome"></span>
+                  </div>
+                  <div class="card-field half">
+                    <span class="field-label">TELEFONE DO RESPONSÁVEL</span>
+                    <span class="field-value" id="card-resp-tel"></span>
+                  </div>
                 </div>
-                <div class="card-field half">
-                  <span class="field-label">TELEFONE DO RESPONSÁVEL</span>
-                  <span class="field-value" id="card-resp-tel"></span>
+
+                <!-- SITUAÇÃO em linha cheia (oculta no layout, mas mantida pro JS) -->
+                <div class="card-field full status-field">
+                  <span class="field-label">SITUAÇÃO / SAÍDA ANTECIPADA</span>
+                  <span class="field-value" id="card-status-msg"></span>
                 </div>
-              </div>
 
-              <!-- SITUAÇÃO em linha cheia (oculta no layout, mas mantida pro JS) -->
-              <div class="card-field full status-field">
-                <span class="field-label">SITUAÇÃO / SAÍDA ANTECIPADA</span>
-                <span class="field-value" id="card-status-msg"></span>
-              </div>
-
-              <!-- Observações logo em seguida -->
-              <div class="card-footer">
-                <span class="footer-title">Observações</span>
-                <span class="footer-text">
-                  Válida exclusivamente para saída antecipada nas seguintes situações:
-                  trabalhos acadêmicos fora de horário de aula; troca de horário de
-                  aulas; ausência eventual de professores(as); atendimentos
-                  extraclasse ou monitoria; finalização antecipada de avaliações.
-                </span>
-                <span id="card-timestamp" class="card-timestamp" title="Clique para atualizar"></span>
-                <span class="timestamp-hint">Toque para atualizar • Verifica em tempo real</span>
+                <!-- Observações logo em seguida -->
+                <div class="card-footer">
+                  <span class="footer-title">Observações</span>
+                  <span class="footer-text">
+                    Válida exclusivamente para saída antecipada nas seguintes situações:
+                    trabalhos acadêmicos fora de horário de aula; troca de horário de
+                    aulas; ausência eventual de professores(as); atendimentos
+                    extraclasse ou monitoria; finalização antecipada de avaliações.
+                  </span>
+                  <span id="card-timestamp" class="card-timestamp"></span>
+                </div>
               </div>
             </div>
           </div>

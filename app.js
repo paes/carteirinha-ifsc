@@ -332,23 +332,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // E depois a cada segundo
     if (cardTimestampInterval) clearInterval(cardTimestampInterval);
     cardTimestampInterval = setInterval(updateCardTimestamp, 1000);
-    
-    // Adiciona listener de clique para atualização manual
-    const cardTimestamp = document.getElementById("card-timestamp");
-    if (cardTimestamp) {
-      cardTimestamp.addEventListener("click", updateCardTimestamp);
-    }
   }
 
   function stopCardTimestampUpdate() {
     if (cardTimestampInterval) {
       clearInterval(cardTimestampInterval);
       cardTimestampInterval = null;
-    }
-    // Remove listener de clique
-    const cardTimestamp = document.getElementById("card-timestamp");
-    if (cardTimestamp) {
-      cardTimestamp.removeEventListener("click", updateCardTimestamp);
     }
   }
 
@@ -739,8 +728,28 @@ document.addEventListener("DOMContentLoaded", () => {
           
         } catch (err) {
           console.error("❌ Erro ao processar foto:", err);
-          alert("Erro na foto: " + err.message + "\n\nO pedido será enviado sem foto.");
-          photoBase64 = null;
+          
+          // Mensagens específicas para cada tipo de erro
+          let mensagemErro = "Erro na foto: ";
+          
+          if (err.message.includes("Formato inválido")) {
+            mensagemErro += "A foto deve estar em formato JPG ou PNG.\n\n";
+            mensagemErro += "Formatos aceitos: .jpg, .jpeg, .png\n";
+            mensagemErro += "Por favor, converta sua imagem e tente novamente.";
+          } else if (err.message.includes("muito grande")) {
+            mensagemErro += "A foto é muito grande para processamento.\n\n";
+            mensagemErro += "Tamanho máximo: 500KB\n";
+            mensagemErro += "Sugestão: Use um aplicativo para reduzir o tamanho da imagem.";
+          } else if (err.message.includes("Falha ao processar")) {
+            mensagemErro += "Ocorreu um erro ao processar a imagem.\n\n";
+            mensagemErro += "Tente usar outra foto ou verifique se o arquivo não está corrompido.";
+          } else {
+            mensagemErro += err.message + "\n\n";
+            mensagemErro += "Por favor, verifique a foto e tente novamente.";
+          }
+          
+          alert(mensagemErro);
+          return; // Impede o envio do formulário
         }
       } else {
         console.log("⚠️ Nenhuma foto enviada (obrigatório)");
