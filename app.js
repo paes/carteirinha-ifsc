@@ -599,13 +599,39 @@ document.addEventListener("DOMContentLoaded", () => {
     const photoModalImg = document.getElementById("photo-modal-img");
 
     function closePhotoModal() {
-      if (photoModal) photoModal.classList.add("hidden");
+      if (photoModal) {
+        photoModal.classList.add("hidden");
+        photoModal.style.display = "none";
+      }
       if (photoModalImg) photoModalImg.src = "";
+    }
+
+    function openPhotoModal() {
+      if (photoModal) {
+        photoModal.classList.remove("hidden");
+        photoModal.style.display = "flex";
+      }
     }
 
     if (photoModalClose) {
       photoModalClose.addEventListener("click", closePhotoModal);
     }
+
+    // Fechar modal ao clicar fora
+    if (photoModal) {
+      photoModal.addEventListener("click", (e) => {
+        if (e.target === photoModal) {
+          closePhotoModal();
+        }
+      });
+    }
+
+    // Fechar modal com ESC
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !photoModal?.classList.contains("hidden")) {
+        closePhotoModal();
+      }
+    });
 
     tbody.querySelectorAll(".photo-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
@@ -1077,14 +1103,14 @@ document.addEventListener("DOMContentLoaded", () => {
       // Usar Base64 se disponível
       if (data.photoBase64) {
         if (photoModalImg) photoModalImg.src = data.photoBase64;
-        if (photoModal) photoModal.classList.remove("hidden");
+        openPhotoModal();
       } 
       // Fallback para Storage antigo
       else if (data.photoPath) {
         try {
           const url = await fb.storage.ref(data.photoPath).getDownloadURL();
           if (photoModalImg) photoModalImg.src = url;
-          if (photoModal) photoModal.classList.remove("hidden");
+          openPhotoModal();
         } catch (storageErr) {
           console.error("Erro ao carregar do Storage:", storageErr);
           alert("Foto não encontrada no Storage. Tente novamente.");
