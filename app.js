@@ -1622,47 +1622,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 100);
   });
 
-  // OBSERVAÇÕES EXPANSIVAS - Sem modal (movido para DOMContentLoaded)
-  document.addEventListener("DOMContentLoaded", () => {
-    const observacoesTrigger = document.getElementById("observacoes-trigger");
-    const observacoesContent = document.getElementById("observacoes-content");
-
-    function toggleObservacoes() {
-      if (observacoesContent && observacoesTrigger) {
-        const isExpanded = observacoesContent.classList.contains("expanded");
-        
-        if (isExpanded) {
-          // Fechar
-          observacoesContent.classList.remove("expanded");
-          observacoesTrigger.classList.remove("expanded");
-        } else {
-          // Abrir
-          observacoesContent.classList.add("expanded");
-          observacoesTrigger.classList.add("expanded");
-        }
-      }
-    }
-
-    // Event listener para as observações
-    if (observacoesTrigger) {
-      observacoesTrigger.addEventListener("click", toggleObservacoes);
-      observacoesTrigger.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        toggleObservacoes();
-      });
-    }
-  });
-
-  // FUNÇÃO DE EMERGÊNCIA - Simplificada (apenas fecha observações)
+  // FUNÇÃO DE EMERGÊNCIA - Simplificada (apenas fecha modais de fotos)
   function fecharTodosModais() {
-    // Fechar observações expansivas
-    const observacoesContent = document.getElementById("observacoes-content");
-    const observacoesTrigger = document.getElementById("observacoes-trigger");
-    if (observacoesContent && observacoesTrigger) {
-      observacoesContent.classList.remove("expanded");
-      observacoesTrigger.classList.remove("expanded");
-    }
-    
     // Fechar modal de fotos (se existir)
     const photoModal = document.getElementById("photo-modal");
     if (photoModal) {
@@ -1672,7 +1633,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (photoModalImg) photoModalImg.src = "";
     }
     
-    console.log("🔓 Elementos fechados (emergência)");
+    console.log("🔓 Modais fechados (emergência)");
   }
 
   // Adicionar atalho duplo ESC para emergência
