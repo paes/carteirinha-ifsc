@@ -1551,44 +1551,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, 100);
 
-  // BLOQUEIO DE ORIENTAÇÃO SUAVE
-  let lastOrientationAlert = 0;
-  
-  function lockOrientation() {
-    // Tentar bloquear orientação via Screen Orientation API
-    if (screen && screen.orientation && screen.orientation.lock) {
-      screen.orientation.lock('portrait').catch(err => {
-        console.log('⚠️ Não foi possível bloquear orientação:', err);
-      });
-    }
-    
-    // Alternativas para diferentes navegadores
-    if (screen && screen.lockOrientation) {
-      screen.lockOrientation('portrait');
-    }
-    
-    if (window.screen && window.screen.lockOrientation) {
-      window.screen.lockOrientation('portrait');
-    }
-  }
-
-  // Bloquear orientação ao carregar
-  lockOrientation();
-  
-  // Prevenir rotação via eventos de orientação - mais suave
-  window.addEventListener('orientationchange', () => {
-    setTimeout(() => {
-      const currentOrientation = window.orientation || 0;
-      if (currentOrientation === 90 || currentOrientation === -90) {
-        // Estou em landscape - tentar bloquear (sem alerta)
-        lockOrientation();
-      }
-    }, 100);
-  });
-
-  // Não mostrar alertas repetidamente - apenas tentar bloquear
-  // Removido o confirm() que estava causando problemas
-
   // EXIBIR INFORMAÇÕES DO ARQUIVO DE FOTO
   const fotoInput = document.getElementById("req-foto");
   const fileInfo = document.getElementById("file-info");
